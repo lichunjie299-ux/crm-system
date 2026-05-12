@@ -28,6 +28,7 @@ const UI = {
     upload: '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
     refresh: '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
     alert: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12.01" y2="16"/><line x1="12" y1="8" x2="12" y2="12"/></svg>',
     convert: '<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
     phone: '<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
     mail: '<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
@@ -43,6 +44,12 @@ const UI = {
     const svg = this.icons[name] || '';
     if (size) return `<span class="icon" style="width:${size}px;height:${size}px">${svg}</span>`;
     return svg;
+  },
+
+  // 金额格式化（供内部模板使用）
+  _formatMoney(amount) {
+    if (amount == null || isNaN(amount)) return '0.00';
+    return Number(amount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
   // Toast 通知
@@ -242,6 +249,60 @@ const UI = {
             <div class="file-list" data-file-list></div>
           </div>`;
           break;
+        case 'productAmountList':
+          const paItems = Array.isArray(value) && value.length > 0 ? value : [{ product: '', amount: '' }];
+          const prodOpts = f.options || [];
+          input = `<div class="product-amount-list" data-name="${f.key}">
+            <div class="pa-items" data-pa-items>
+              ${paItems.map((item, i) => {
+                const optsHtml = prodOpts.map(o => {
+                  const optVal = typeof o === 'string' ? o : o.value;
+                  const optLabel = typeof o === 'string' ? o : o.label;
+                  const selected = item.product === optVal ? ' selected' : '';
+                  return `<option value="${Helpers.escapeHtml(optVal)}"${selected}>${Helpers.escapeHtml(optLabel)}</option>`;
+                }).join('');
+                return `<div class="pa-row" data-index="${i}">
+                  <select class="form-select pa-product" data-pa-index="${i}">
+                    <option value="">选择产品</option>
+                    ${optsHtml}
+                  </select>
+                  <input type="number" class="form-input pa-amount" value="${item.amount || ''}" placeholder="预计成交金额（元）" step="0.01" min="0" data-pa-index="${i}">
+                  <button type="button" class="btn btn-sm pa-remove" data-pa-index="${i}" ${paItems.length <= 1 ? 'style="display:none"' : ''}>
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>`;
+              }).join('')}
+            </div>
+            <div class="pa-total" data-pa-total>合计金额：¥<span data-pa-total-amount>${this._formatMoney(paItems.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0))}</span></div>
+            <button type="button" class="btn btn-secondary btn-sm pa-add"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 添加意向产品</button>
+          </div>`;
+          break;
+        case 'dropConditionBuilder':
+          const dcItems = Array.isArray(value) && value.length > 0 ? value : [{ type: 'noDeal', days: '' }];
+          input = `<div class="drop-condition-builder" data-name="${f.key}">
+            <div class="dc-items" data-dc-items>
+              ${dcItems.map((item, i) => {
+                const isLast = i === dcItems.length - 1;
+                return `<div class="dc-row" data-index="${i}">
+                  <select class="form-select dc-type" data-dc-index="${i}">
+                    <option value="noDeal" ${item.type === 'noDeal' ? 'selected' : ''}>X天未成单掉保</option>
+                    <option value="noVisit" ${item.type === 'noVisit' ? 'selected' : ''}>X天未拜访掉保</option>
+                    <option value="noOpportunity" ${item.type === 'noOpportunity' ? 'selected' : ''}>X天未创建商机掉保</option>
+                  </select>
+                  <div class="dc-days-group">
+                    <input type="number" class="form-input dc-days" value="${item.days || ''}" placeholder="天数" min="1" data-dc-index="${i}">
+                    <span class="dc-days-label">天</span>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-text dc-remove" data-dc-index="${i}" ${dcItems.length <= 1 ? 'style="display:none"' : ''}>
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                  ${!isLast ? '<div class="dc-or">或</div>' : ''}
+                </div>`;
+              }).join('')}
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm dc-add"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 添加条件</button>
+          </div>`;
+          break;
         default:
           input = `<input type="${f.type || 'text'}" class="form-input" name="${f.key}" value="${Helpers.escapeHtml(String(value))}" placeholder="${f.placeholder || ''}" ${f.disabled ? 'disabled' : ''}>`;
       }
@@ -286,6 +347,131 @@ const UI = {
       });
     });
 
+    // 掉保条件构建器动态交互
+    el.querySelectorAll('.drop-condition-builder').forEach(builder => {
+      const itemsContainer = builder.querySelector('[data-dc-items]');
+      const addBtn = builder.querySelector('.dc-add');
+
+      function dcUpdateOr() {
+        const rows = itemsContainer.querySelectorAll('.dc-row');
+        rows.forEach((row, i) => {
+          let orEl = row.querySelector('.dc-or');
+          if (i < rows.length - 1) {
+            if (!orEl) {
+              orEl = document.createElement('div');
+              orEl.className = 'dc-or';
+              orEl.textContent = '或';
+              row.appendChild(orEl);
+            }
+          } else {
+            if (orEl) orEl.remove();
+          }
+        });
+      }
+
+      function dcAddRow(type, days) {
+        const idx = itemsContainer.children.length;
+        const row = document.createElement('div');
+        row.className = 'dc-row';
+        row.dataset.index = idx;
+        row.innerHTML = `
+          <select class="form-select dc-type" data-dc-index="${idx}">
+            <option value="noDeal">X天未成单掉保</option>
+            <option value="noVisit">X天未拜访掉保</option>
+            <option value="noOpportunity">X天未创建商机掉保</option>
+          </select>
+          <div class="dc-days-group">
+            <input type="number" class="form-input dc-days" value="${days || ''}" placeholder="天数" min="1" data-dc-index="${idx}">
+            <span class="dc-days-label">天</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-text dc-remove" data-dc-index="${idx}">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>`;
+        if (type) row.querySelector('.dc-type').value = type;
+        itemsContainer.appendChild(row);
+        // Show remove on all rows
+        itemsContainer.querySelectorAll('.dc-remove').forEach(b => b.style.display = '');
+        dcUpdateOr();
+      }
+
+      // Remove row
+      itemsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.dc-remove');
+        if (!btn) return;
+        const rows = itemsContainer.querySelectorAll('.dc-row');
+        if (rows.length <= 1) return;
+        btn.closest('.dc-row').remove();
+        if (itemsContainer.querySelectorAll('.dc-row').length <= 1) {
+          itemsContainer.querySelector('.dc-remove').style.display = 'none';
+        }
+        dcUpdateOr();
+      });
+
+      // Add row
+      if (addBtn) {
+        addBtn.addEventListener('click', () => dcAddRow('noDeal', ''));
+      }
+    });
+
+    // 产品-金额列表动态交互（添加/删除/合计）
+    el.querySelectorAll('.product-amount-list').forEach(list => {
+      const itemsContainer = list.querySelector('[data-pa-items]');
+      const totalSpan = list.querySelector('[data-pa-total-amount]');
+      const addBtn = list.querySelector('.pa-add');
+      const prodOpts = list.querySelector('.pa-product')?.innerHTML || '';
+
+      function paUpdateTotal() {
+        let total = 0;
+        itemsContainer.querySelectorAll('.pa-amount').forEach(inp => {
+          total += parseFloat(inp.value) || 0;
+        });
+        if (totalSpan) totalSpan.textContent = UI._formatMoney(total);
+      }
+
+      function paAddRow(productVal, amountVal) {
+        const idx = itemsContainer.children.length;
+        const row = document.createElement('div');
+        row.className = 'pa-row';
+        row.dataset.index = idx;
+        row.innerHTML = `
+          <select class="form-select pa-product" data-pa-index="${idx}">
+            ${prodOpts}
+          </select>
+          <input type="number" class="form-input pa-amount" value="${amountVal || ''}" placeholder="预计成交金额（元）" step="0.01" min="0" data-pa-index="${idx}">
+          <button type="button" class="btn btn-sm pa-remove" data-pa-index="${idx}">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>`;
+        if (productVal) row.querySelector('.pa-product').value = productVal;
+        // 显示全部行的删除按钮
+        itemsContainer.querySelectorAll('.pa-remove').forEach(b => b.style.display = '');
+        itemsContainer.appendChild(row);
+        paUpdateTotal();
+      }
+
+      // 删除行
+      itemsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pa-remove');
+        if (!btn) return;
+        const rows = itemsContainer.querySelectorAll('.pa-row');
+        if (rows.length <= 1) return;
+        btn.closest('.pa-row').remove();
+        if (itemsContainer.querySelectorAll('.pa-row').length <= 1) {
+          itemsContainer.querySelector('.pa-remove').style.display = 'none';
+        }
+        paUpdateTotal();
+      });
+
+      // 金额变更时更新合计
+      itemsContainer.addEventListener('input', (e) => {
+        if (e.target.classList.contains('pa-amount')) paUpdateTotal();
+      });
+
+      // 添加行
+      if (addBtn) {
+        addBtn.addEventListener('click', () => paAddRow('', ''));
+      }
+    });
+
     return el;
   },
 
@@ -327,6 +513,64 @@ const UI = {
       if (f.type === 'file') {
         const fileInput = container.querySelector(`input[type="file"][name="${f.key}"]`);
         data[f.key] = fileInput && fileInput.files.length > 0 ? Array.from(fileInput.files).map(fi => fi.name).join(',') : (data[f.key] || '');
+        return;
+      }
+
+      if (f.type === 'dropConditionBuilder') {
+        const dcContainer = container.querySelector(`[data-name="${f.key}"]`);
+        const items = [];
+        if (dcContainer) {
+          dcContainer.querySelectorAll('.dc-row').forEach(row => {
+            const type = row.querySelector('.dc-type')?.value || '';
+            const days = parseInt(row.querySelector('.dc-days')?.value) || 0;
+            if (type && days > 0) {
+              items.push({ type, days });
+            }
+          });
+        }
+        data[f.key] = items;
+        // 自动生成显示文本
+        data.dropRule = items.map(c => {
+          if (c.type === 'noDeal') return `超${c.days}天未成单掉保`;
+          if (c.type === 'noVisit') return `超${c.days}天未拜访掉保`;
+          if (c.type === 'noOpportunity') return `超${c.days}天未创建商机掉保`;
+          return '';
+        }).join(' / ');
+        if (f.required && items.length === 0) {
+          valid = false;
+          const err = document.createElement('div');
+          err.className = 'form-error';
+          err.textContent = `请至少配置一个${f.label}`;
+          if (dcContainer) dcContainer.parentElement.appendChild(err);
+        }
+        return;
+      }
+
+      if (f.type === 'productAmountList') {
+        const paContainer = container.querySelector(`[data-name="${f.key}"]`);
+        const items = [];
+        let totalAmount = 0;
+        if (paContainer) {
+          paContainer.querySelectorAll('.pa-row').forEach(row => {
+            const product = row.querySelector('.pa-product')?.value || '';
+            const amountStr = row.querySelector('.pa-amount')?.value || '';
+            if (product) {
+              const amt = parseFloat(amountStr) || 0;
+              items.push({ product, amount: amt });
+              totalAmount += amt;
+            }
+          });
+        }
+        data[f.key] = items;
+        data.amount = totalAmount;
+        if (f.required && items.length === 0) {
+          valid = false;
+          const err = document.createElement('div');
+          err.className = 'form-error';
+          err.textContent = `请至少添加一个${f.label}`;
+          if (paContainer) paContainer.parentElement.appendChild(err);
+          return;
+        }
         return;
       }
 

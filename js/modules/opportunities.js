@@ -18,9 +18,8 @@ const Opportunities = {
     { key: 'purchaseType', label: '采购类型', type: 'select', required: true, options: ['新开', '续约', '增购', '增值'], default: '新开' },
     { key: 'customerNeed', label: '客户需求', type: 'textarea', required: true, fullWidth: true, placeholder: '详细描述客户的核心诉求、痛点或采购目标', rows: 3 },
     { key: 'stage', label: '商机阶段', type: 'select', required: true, options: ['需求待确认', '需求确认', '方案认可', '确定合作', '合同签约', '赢单', '输单'], default: '需求待确认' },
-    { key: 'intendedProduct', label: '意向产品', type: 'multiSelect', required: true, options: ['微商城', '智慧零售', '智慧购百', '智慧商超', '智慧生鲜', '批发商城', '本地生活', '视频号营销助手', '智慧零售宠物行业', '智慧门店', '微盟星启', '智慧美业', '智慧服务', '企微助手', '企微小助手'], placeholder: '请选择意向产品' },
     { key: 'expectedCloseDate', label: '预计成交时间', type: 'date', required: true },
-    { key: 'amount', label: '预计成交金额（元）', type: 'number', required: true, step: '0.01', min: 0, placeholder: '0.00' },
+    { key: 'intendedProducts', label: '意向产品及金额', type: 'productAmountList', required: true, options: ['微商城', '智慧零售', '智慧购百', '智慧商超', '智慧生鲜', '批发商城', '本地生活', '视频号营销助手', '智慧零售宠物行业', '智慧门店', '微盟星启', '智慧美业', '智慧服务', '企微助手', '企微小助手'] },
     { key: 'keyAction', label: '本月关键动作', type: 'text', required: true, placeholder: '本月关键动作' },
     { key: 'keyActionDate', label: '关键动作日期', type: 'date', required: true },
     { key: 'remark', label: '备注', type: 'textarea', fullWidth: true, placeholder: '备注信息...' },
@@ -179,7 +178,6 @@ const Opportunities = {
       <div class="opp-sidebar-actions">
         <button class="btn btn-outline-primary btn-sm" id="sidebar-btn-followup" title="写跟进"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 写跟进</button>
         <button class="btn btn-secondary btn-sm" id="sidebar-btn-edit" title="编辑"><svg viewBox="0 0 24 24" style="width:14px;height:14px">${UI.icons.edit}</svg> 编辑</button>
-        ${isActive ? `<button class="btn btn-success btn-sm" id="sidebar-btn-win" title="标记赢单"><svg viewBox="0 0 24 24" style="width:14px;height:14px">${UI.icons.check}</svg> 赢单</button>` : ''}
         <button class="btn btn-secondary btn-sm" id="sidebar-btn-detail" title="查看完整详情">详情页 <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>
 
@@ -198,10 +196,13 @@ const Opportunities = {
             </div>
             <div class="opp-info-item">
               <span class="opp-info-label">意向产品</span>
-              <span class="opp-info-value">${item.intendedProduct ? Helpers.escapeHtml(item.intendedProduct) : '-'}</span>
+              <span class="opp-info-value">${(() => {
+                const products = Array.isArray(item.intendedProducts) ? item.intendedProducts : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
+                return products.length > 0 ? products.map(p => `<span style="display:block;line-height:1.6">${Helpers.escapeHtml(p.product)}</span>`).join('') : '-';
+              })()}</span>
             </div>
             <div class="opp-info-item">
-              <span class="opp-info-label">预计金额</span>
+              <span class="opp-info-label">预计总额</span>
               <span class="opp-info-value" style="color:var(--primary);font-weight:700">${Helpers.formatMoney(item.amount)}</span>
             </div>
             <div class="opp-info-item">
@@ -234,9 +235,15 @@ const Opportunities = {
       </div>
 
       <div class="opp-sidebar-footer">
-        <button class="btn btn-danger btn-sm" id="sidebar-btn-delete"><svg viewBox="0 0 24 24" style="width:14px;height:14px">${UI.icons.trash}</svg> 删除</button>
+        <button class="btn btn-danger btn-sm" id="sidebar-btn-delete"><svg viewBox="0 0 24 24" style="width:14px;height:14px">${UI.icons.trash}</svg> 作废</button>
       </div>
     `;
+
+    // 已作废的商机隐藏作废按钮
+    if (item.dataValidity === '已作废') {
+      const delBtn = this._sidebarEl.querySelector('#sidebar-btn-delete');
+      if (delBtn) delBtn.style.display = 'none';
+    }
 
     // 绑定事件
     this._sidebarEl.querySelector('#opp-sidebar-close').addEventListener('click', () => this.closeSidebar());
@@ -247,10 +254,6 @@ const Opportunities = {
     this._sidebarEl.querySelector('#sidebar-btn-edit')?.addEventListener('click', () => {
       this.closeSidebar();
       this.showForm(id);
-    });
-    this._sidebarEl.querySelector('#sidebar-btn-win')?.addEventListener('click', () => {
-      this.closeSidebar();
-      this.handleWin(id);
     });
     this._sidebarEl.querySelector('#sidebar-btn-detail')?.addEventListener('click', () => {
       this.closeSidebar();
@@ -335,7 +338,7 @@ const Opportunities = {
         if (amt >= 10000) return '¥' + (amt / 10000).toFixed(1) + 'W';
         return '¥' + Number(amt).toLocaleString('zh-CN', { maximumFractionDigits: 0 });
       };
-      let html = `<span class="opp-brief-pill opp-brief-pill-total">总量（${stats.total.count}，${fmtAmt(stats.total.amount)}）</span>`;
+      let html = `<span class="opp-brief-pill opp-brief-pill-total">整体（${stats.total.count}，${fmtAmt(stats.total.amount)}）</span>`;
       this.STAGES.forEach(stage => {
         const s = stats[stage];
         const type = this.STAGE_TYPE[stage] || 'gray';
@@ -371,7 +374,10 @@ const Opportunities = {
         { key: 'name', label: '商机名称', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
         { key: 'customerId', label: '客户名称', render: v => { const c = Store.getById('customers', v); return c ? `<span class="cell-link" data-customer="${v}">${Helpers.escapeHtml(c.name)}</span>` : '-'; }},
         { key: 'brandName', label: '品牌名', width: '90px', render: v => v ? `<span class="cell-brand">${Helpers.escapeHtml(v)}</span>` : '-' },
-        { key: 'intendedProduct', label: '意向产品', width: '120px', render: v => v ? Helpers.escapeHtml(v) : '-' },
+        { key: 'intendedProducts', label: '意向产品', width: '120px', render: (v, item) => {
+          const products = Array.isArray(v) ? v : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
+          return products.length > 0 ? products.map(p => `<span style="display:inline-block;margin:1px 2px;padding:0 6px;background:var(--gray-100);border-radius:3px;font-size:12px">${Helpers.escapeHtml(p.product)}</span>`).join('') : '-';
+        }},
         { key: 'purchaseType', label: '采购类型', width: '80px', render: v => v ? Components.Badge(v, v === '新开' ? 'primary' : v === '续约' ? 'info' : v === '增购' ? 'warning' : 'success') : '-' },
         { key: 'dataValidity', label: '数据有效性', width: '100px', render: v => Components.Badge(v || '未生效', Opportunities.DATA_VALIDITY_TYPE[v || '未生效'] || 'gray') },
         { key: 'stage', label: '商机阶段', width: '110px', render: v => {
@@ -379,7 +385,7 @@ const Opportunities = {
           const badge = Components.Badge(v, Opportunities.STAGE_TYPE[v] || 'gray');
           return prob != null ? `${badge}<span style="font-size:var(--text-xs);color:var(--text-muted);margin-left:4px">${prob}%</span>` : badge;
         }},
-        { key: 'amount', label: '预估金额', width: '120px', sortable: true, render: v => `<strong>${Helpers.formatMoney(v)}</strong>` },
+        { key: 'amount', label: '预计总额', width: '120px', sortable: true, render: v => `<strong>${Helpers.formatMoney(v)}</strong>` },
         { key: 'oppSource', label: '商机类型', width: '90px', render: v => v ? Components.Badge(v, v === '派单商机' ? 'primary' : 'info') : '-' },
         { key: 'expectedCloseDate', label: '预计成交', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
         { key: 'stageStayDays', label: '停留天数', width: '80px', sortable: true, render: (v, item) => {
@@ -427,8 +433,18 @@ const Opportunities = {
     el.innerHTML = `
       <div class="page-header">
         <div class="page-header-left">
-          <h2 class="page-title">商机管理</h2>
-          <p class="page-subtitle">进行中商机 ${activeOpps.length} 个，总金额 ${Helpers.formatMoneyShort(totalAmount)}，已赢单 ${Helpers.formatMoneyShort(wonAmount)} <span style="color:var(--warning);margin-left:8px">⚠ 商机阶段达70%、90%、100%时需直属上级审核，审核后客户和商机均不会再掉保</span></p>
+          <div class="page-title-wrap">
+            <h2 class="page-title">商机管理</h2>
+            <span class="opp-rule-trigger" id="opp-rule-trigger">${UI.icons.info}</span>
+            <div class="opp-rule-popover" id="opp-rule-popover" style="display:none">
+              <h4>商机规则说明</h4>
+              <ul>
+                <li><strong>10%、30%阶段</strong>：每7天跟进一次，否则将掉保</li>
+                <li><strong>50%阶段</strong>：至少有一次拜访记录，且每7天跟进一次，否则将掉保</li>
+                <li><strong>70%、90%、100%阶段</strong>：至少有一次拜访记录，且管理层审核后不掉保，无需重复审批</li>
+              </ul>
+            </div>
+          </div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary" id="btn-add"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 新建商机</button>
@@ -445,6 +461,23 @@ const Opportunities = {
     el.querySelector('#btn-export')?.addEventListener('click', () => {
       UI.toast('导出功能开发中', 'info');
     });
+
+    // 商机规则提示弹窗
+    const ruleTrigger = el.querySelector('#opp-rule-trigger');
+    const rulePopover = el.querySelector('#opp-rule-popover');
+    if (ruleTrigger && rulePopover) {
+      ruleTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = rulePopover.style.display === 'none';
+        rulePopover.style.display = isHidden ? 'block' : 'none';
+      });
+      document.addEventListener('click', (e) => {
+        if (!ruleTrigger.contains(e.target) && !rulePopover.contains(e.target)) {
+          rulePopover.style.display = 'none';
+        }
+      });
+    }
+
     el.addEventListener('click', (e) => {
       const link = e.target.closest('.cell-link[data-id]');
       if (link) { e.stopPropagation(); this.openSidebar(link.dataset.id); }
@@ -551,7 +584,11 @@ const Opportunities = {
           { key: 'name', label: '商机名称' },
           { key: 'customerId', label: '关联客户', render: v => { const c = Store.getById('customers', v); return c ? `<a href="#/customers/view/${c.id}">${Helpers.escapeHtml(c.name)}</a>` : '-'; }},
           { key: 'stage', label: '当前阶段', render: v => Components.Badge(v, Opportunities.STAGE_TYPE[v] || 'gray') },
-          { key: 'amount', label: '预估金额', render: v => Helpers.formatMoney(v) },
+          { key: 'intendedProducts', label: '意向产品', render: (v, item) => {
+            const products = Array.isArray(v) ? v : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
+            return products.length > 0 ? products.map(p => `${Helpers.escapeHtml(p.product)}（${Helpers.formatMoney(p.amount)}）`).join('<br>') : '-';
+          }},
+          { key: 'amount', label: '预估总额', render: v => Helpers.formatMoney(v) },
           { key: 'probability', label: '成交概率', render: v => v ? `${v}%` : '-' },
           { key: 'expectedCloseDate', label: '预计成交日期', render: v => Helpers.formatDate(v) },
           { key: 'assignee', label: '负责人' },
@@ -648,10 +685,6 @@ const Opportunities = {
         // 根据阶段自动设置成交概率
         if (formData.stage && this.STAGE_PROB[formData.stage] != null) {
           formData.probability = String(this.STAGE_PROB[formData.stage]);
-        }
-        // 意向产品多选转逗号分隔存储
-        if (Array.isArray(formData.intendedProduct)) {
-          formData.intendedProduct = formData.intendedProduct.join(',');
         }
         // 阶段变更时记录时间
         if (isEdit) {
@@ -897,14 +930,15 @@ const Opportunities = {
     const item = Store.getById(this.COLLECTION, id);
     if (!item) return;
     UI.confirm({
-      title: '删除商机',
-      message: `确定要删除商机「${item.name}」吗？`,
+      title: '作废商机',
+      message: `确定要将商机「${item.name}」作废吗？作废后商机数据仍保留，但标记为已作废状态。`,
       type: 'danger',
-      confirmText: '确认删除',
+      confirmText: '确认作废',
       onConfirm: () => {
-        Store.delete(this.COLLECTION, id);
-        UI.toast('商机已删除');
-        Router.navigate('#/opportunities');
+        Store.update(this.COLLECTION, id, { dataValidity: '已作废' });
+        UI.toast('商机已作废');
+        this.closeSidebar();
+        this.renderList();
       }
     });
   },

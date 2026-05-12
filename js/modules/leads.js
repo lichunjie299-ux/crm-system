@@ -230,15 +230,23 @@ const Leads = {
     const fields = [
       { key: 'name', label: '客户名称', type: 'text', required: true },
       { key: 'type', label: '客户类型', type: 'select', required: true, options: ['企业客户', '个人客户'] },
+      { key: 'businessLine', label: '业务线', type: 'select', options: ['上海营销中心', '北京营销中心', '深圳营销中心', '广州营销中心', '杭州营销中心'] },
+      { key: 'productLine', label: '产品线', type: 'select', options: ['新零售', '零售SaaS', '智慧商超', '到店', '视频号', '定制开发', '企微小助手', '智慧服务'] },
+      { key: 'region', label: '地区', type: 'select', options: ['上海', '北京', '深圳', '广州', '成都', '杭州', '南京', '武汉', '重庆', '西安', '天津', '长沙', '其他'] },
       { key: 'industry', label: '行业', type: 'select', options: ['互联网/IT', '金融', '制造业', '教育', '医疗', '房地产', '零售', '其他'] },
-      { key: 'scale', label: '规模', type: 'select', options: ['1-50人', '50-200人', '200-1000人', '1000人以上'] },
+      { key: 'storeCount', label: '线下门店数', type: 'select', options: ['无门店', '1-10家', '11-30家', '31-50家', '51-100家', '101-500家', '500家以上'] },
+      { key: 'isBrandCustomer', label: '是否品牌客户', type: 'select', options: ['是', '否'] },
+      { key: 'brandName', label: '品牌名', type: 'text' },
       { key: 'phone', label: '电话', type: 'text' },
       { key: 'email', label: '邮箱', type: 'email' },
     ];
 
     const preData = {
       name: lead.customerName || '',
-      customerSource: '自建客户',
+      customerSource: '自拓线索',
+      businessLine: lead.bizLine || '',
+      productLine: lead.productLine || '',
+      region: lead.region || '',
     };
 
     // 显示转化预览 + 表单

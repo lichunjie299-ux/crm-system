@@ -17,6 +17,8 @@ const App = {
     LeadPool.init();
     CustomerPool.init();
     Orders.init();
+    Contracts.init();
+    Rules.init();
     FollowUps.init();
 
     // 注册设置/导出路由
@@ -105,6 +107,13 @@ const App = {
       Store.getAll('orders').forEach(item => {
         if (item.orderNo && item.orderNo.toLowerCase().includes(lowerTerm)) {
           results.push({ type: '订单', name: item.orderNo, sub: Helpers.formatMoney(item.totalAmount), hash: `#/orders/view/${item.id}` });
+        }
+      });
+
+      Store.getAll('contracts').forEach(item => {
+        if ((item.contractNo && item.contractNo.toLowerCase().includes(lowerTerm)) ||
+            (item.signer && item.signer.toLowerCase().includes(lowerTerm))) {
+          results.push({ type: '合同', name: item.contractNo, sub: Helpers.formatMoney(item.amount), hash: `#/contracts` });
         }
       });
 
@@ -376,6 +385,7 @@ const App = {
             <div class="detail-field"><div class="field-label">联系人数</div><div class="field-value">${Store.count('contacts')}</div></div>
             <div class="detail-field"><div class="field-label">商机数</div><div class="field-value">${Store.count('opportunities')}</div></div>
             <div class="detail-field"><div class="field-label">订单数</div><div class="field-value">${Store.count('orders')}</div></div>
+            <div class="detail-field"><div class="field-label">合同数</div><div class="field-value">${Store.count('contracts')}</div></div>
             <div class="detail-field"><div class="field-label">跟进记录数</div><div class="field-value">${Store.count('followups')}</div></div>
             <div class="detail-field"><div class="field-label">产品数</div><div class="field-value">${Store.count('products')}</div></div>
           </div>

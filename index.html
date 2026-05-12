@@ -6,8 +6,8 @@
   <title>CRM 客户关系管理系统</title>
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css?v=3">
+  <link rel="stylesheet" href="css/components.css?v=2">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 </head>
@@ -84,6 +84,18 @@
               <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
               <span>订单管理</span>
             </div>
+            <div class="nav-item" data-route="#/contracts">
+              <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="13" x2="8" y2="13"/><line x1="12" y1="17" x2="8" y2="17"/><line x1="16" y1="9" x2="8" y2="9"/></svg></span>
+              <span>合同管理</span>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">规则管理</div>
+            <div class="nav-item" data-route="#/rules">
+              <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></span>
+              <span>资源流转规则</span>
+            </div>
           </div>
 
           <div class="sidebar-section">
@@ -127,23 +139,25 @@
   </div>
 
   <!-- JS 加载顺序 -->
-  <script src="js/events.js"></script>
-  <script src="js/utils/helpers.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/router.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/modules/dashboard.js"></script>
-  <script src="js/modules/products.js"></script>
-  <script src="js/modules/leads.js"></script>
-  <script src="js/modules/customers.js"></script>
-  <script src="js/modules/contacts.js"></script>
-  <script src="js/modules/opportunities.js"></script>
-  <script src="js/modules/leadPool.js"></script>
-  <script src="js/modules/customerPool.js"></script>
-  <script src="js/modules/orders.js"></script>
-  <script src="js/modules/followups.js"></script>
-  <script src="js/utils/seed.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/events.js?v=2"></script>
+  <script src="js/utils/helpers.js?v=2"></script>
+  <script src="js/store.js?v=2"></script>
+  <script src="js/router.js?v=2"></script>
+  <script src="js/ui.js?v=3"></script>
+  <script src="js/components.js?v=2"></script>
+  <script src="js/modules/dashboard.js?v=2"></script>
+  <script src="js/modules/products.js?v=2"></script>
+  <script src="js/modules/leads.js?v=4"></script>
+  <script src="js/modules/customers.js?v=6"></script>
+  <script src="js/modules/contacts.js?v=2"></script>
+  <script src="js/modules/opportunities.js?v=4"></script>
+  <script src="js/modules/leadPool.js?v=2"></script>
+  <script src="js/modules/customerPool.js?v=4"></script>
+  <script src="js/modules/orders.js?v=3"></script>
+  <script src="js/modules/contracts.js?v=2"></script>
+  <script src="js/modules/rules.js?v=2"></script>
+  <script src="js/modules/followups.js?v=2"></script>
+  <script src="js/utils/seed.js?v=6"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>

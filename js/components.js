@@ -381,10 +381,11 @@ const Components = {
             const action = btn.dataset.action;
             const id = btn.dataset.id;
             if (action === 'view' && actions.onView) actions.onView(id);
-            if (action === 'edit' && actions.onEdit) actions.onEdit(id);
-            if (action === 'delete' && actions.onDelete) actions.onDelete(id);
-            if (action === 'followup' && actions.onFollowUp) actions.onFollowUp(id);
-            if (action === 'more' && actions.onMore) actions.onMore(id);
+            else if (action === 'edit' && actions.onEdit) actions.onEdit(id);
+            else if (action === 'delete' && actions.onDelete) actions.onDelete(id);
+            else if (action === 'followup' && actions.onFollowUp) actions.onFollowUp(id);
+            else if (action === 'more' && actions.onMore) actions.onMore(id);
+            else if (actions.onAction) actions.onAction(action, id);
           });
         });
       }

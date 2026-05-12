@@ -149,7 +149,7 @@ const Orders = {
     UI.render(el);
   },
 
-  // 嵌入客户详情的子列表
+  // 嵌入客户详情页的子列表（主订单+子订单结构）
   renderSubList(orders, customerId) {
     const el = document.createElement('div');
     if (orders.length === 0) {
@@ -159,23 +159,73 @@ const Orders = {
           <div class="empty-text">暂无订单</div>
         </div>
       `;
-    } else {
-      const rows = orders.map(o => `<tr style="cursor:pointer" data-order-id="${o.id}">
-        <td><span class="font-mono">${Helpers.escapeHtml(o.orderNo)}</span></td>
-        <td>${Components.Badge(o.status, Orders.STATUS_MAP[o.status] || 'gray')}</td>
-        <td><strong>${Helpers.formatMoney(o.totalAmount)}</strong></td>
-        <td>${Helpers.formatDate(o.createdAt)}</td>
-      </tr>`).join('');
-
-      el.innerHTML = `<div class="card"><div class="table-wrapper"><table class="data-table">
-        <thead><tr><th>订单编号</th><th>状态</th><th>金额</th><th>日期</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table></div></div>`;
+      return el;
     }
 
-    el.querySelectorAll('[data-order-id]').forEach(tr => {
-      tr.addEventListener('click', () => Router.navigate(`#/orders/view/${tr.dataset.orderId}`));
+    // 分离主订单和子订单
+    const masterOrders = orders.filter(o => !o.parentOrderId);
+    const subOrders = orders.filter(o => o.parentOrderId);
+
+    const rows = masterOrders.map(o => {
+      const subs = subOrders.filter(s => s.parentOrderId === o.id);
+      const subsHtml = subs.length > 0 ? subs.map(s => `<tr class="sub-order-row" data-parent="${o.id}" style="display:none;background:var(--gray-50)">
+        <td style="padding-left:var(--space-8)"><span class="font-mono" style="font-size:var(--text-xs)">${Helpers.escapeHtml(s.orderNo || '-')}</span></td>
+        <td>${Helpers.escapeHtml(s.orderType || '-')}</td>
+        <td>${Helpers.formatMoney(s.listPrice)}</td>
+        <td>${Helpers.formatMoney(s.originalPrice)}</td>
+        <td style="color:var(--danger)">${Helpers.formatMoney(s.discount)}</td>
+        <td><strong style="color:var(--primary)">${Helpers.formatMoney(s.payableAmount)}</strong></td>
+        <td>${Helpers.escapeHtml(s.submitter || '-')}</td>
+        <td>${Helpers.formatDate(s.createdAt)}</td>
+        <td>${Components.Badge(s.approvalStatus || '待审批', (s.approvalStatus === '已审批' ? 'success' : s.approvalStatus === '已驳回' ? 'danger' : 'warning'))}</td>
+        <td>${Components.Badge(s.status || '待确认', Orders.STATUS_MAP[s.status] || 'gray')}</td>
+      </tr>`).join('') : '';
+
+      const hasSub = subs.length > 0;
+      return `
+        <tr class="master-order-row" data-order-id="${o.id}" style="cursor:pointer">
+          <td><span class="font-mono">${Helpers.escapeHtml(o.orderNo || '-')}</span></td>
+          <td>${Helpers.escapeHtml(o.orderType || '-')}</td>
+          <td>${Helpers.formatMoney(o.listPrice)}</td>
+          <td>${Helpers.formatMoney(o.originalPrice)}</td>
+          <td style="color:var(--danger)">${Helpers.formatMoney(o.discount)}</td>
+          <td><strong style="color:var(--primary)">${Helpers.formatMoney(o.payableAmount)}</strong></td>
+          <td>${Helpers.escapeHtml(o.submitter || '-')}</td>
+          <td>${Helpers.formatDate(o.createdAt)}</td>
+          <td>${Components.Badge(o.approvalStatus || '待审批', (o.approvalStatus === '已审批' ? 'success' : o.approvalStatus === '已驳回' ? 'danger' : 'warning'))}</td>
+          <td>${Components.Badge(o.status || '待确认', Orders.STATUS_MAP[o.status] || 'gray')}</td>
+          <td style="width:40px;text-align:center">${hasSub ? '<span class="expand-icon" style="cursor:pointer;color:var(--primary);font-weight:700;font-size:16px">+</span>' : ''}</td>
+        </tr>
+        ${subsHtml}`;
+    }).join('');
+
+    el.innerHTML = `<div class="card"><div class="table-wrapper"><table class="data-table" style="font-size:var(--text-xs)">
+      <thead><tr>
+        <th>订单编号</th><th>订单类型</th><th>刊例价</th><th>商品原价</th><th>优惠金额</th><th>应付金额</th><th>提单人</th><th>创建时间</th><th>审批状态</th><th>订单状态</th><th style="width:40px"></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div></div>`;
+
+    // 展开/收起子订单
+    el.addEventListener('click', (e) => {
+      const expandBtn = e.target.closest('.expand-icon');
+      if (expandBtn) {
+        const row = expandBtn.closest('.master-order-row');
+        const parentId = row?.dataset.orderId;
+        if (!parentId) return;
+        const subRows = el.querySelectorAll(`.sub-order-row[data-parent="${parentId}"]`);
+        const isHidden = subRows[0]?.style.display === 'none';
+        subRows.forEach(r => r.style.display = isHidden ? '' : 'none');
+        expandBtn.textContent = isHidden ? '−' : '+';
+        return;
+      }
+      // 点击主订单行跳转详情
+      const masterRow = e.target.closest('.master-order-row');
+      if (masterRow && !e.target.closest('.expand-icon')) {
+        Router.navigate(`#/orders/view/${masterRow.dataset.orderId}`);
+      }
     });
+
     return el;
   },
 

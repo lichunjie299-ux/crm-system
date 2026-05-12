@@ -78,17 +78,24 @@ const CustomerPool = {
   _renderPoolTable(el, data) {
     const table = Components.DataTable({
       columns: [
-        { key: 'name', label: '客户名称', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
-        { key: 'type', label: '类型', width: '90px' },
-        { key: 'industry', label: '行业', width: '100px' },
-        { key: 'poolReason', label: '掉保原因', width: '140px', render: v => Components.Badge(v || '超90天未成单', this.REASON_MAP[v] || 'warning') },
-        { key: 'poolDate', label: '掉保时间', width: '110px', sortable: true, render: v => Helpers.formatDate(v) },
-        { key: 'originalAssignee', label: '原负责人', width: '90px', render: v => v ? Helpers.escapeHtml(v) : '-' },
-        { key: '_poolOpps', label: '掉保商机数', width: '90px', render: (_, item) => {
+        { key: 'name', label: '客户名称', sortable: true, render: (v, item) => {
+          const brandTag = item.isBrandCustomer === '是' && item.brandName ? ` <span class="badge badge-warning" style="font-size:10px">品牌</span>` : '';
+          return `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>${brandTag}`;
+        }},
+        { key: 'type', label: '类型', width: '70px' },
+        { key: 'businessLine', label: '业务线', width: '100px' },
+        { key: 'productLine', label: '产品线', width: '90px' },
+        { key: 'industry', label: '行业', width: '90px' },
+        { key: 'storeCount', label: '线下门店数', width: '80px' },
+        { key: 'isBrandCustomer', label: '品牌客户', width: '65px', render: v => v === '是' ? `<span style="color:var(--warning)">✓ 是</span>` : '否' },
+        { key: 'poolReason', label: '掉保原因', width: '130px', render: v => Components.Badge(v || '超90天未成单', this.REASON_MAP[v] || 'warning') },
+        { key: 'poolDate', label: '掉保时间', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
+        { key: 'originalAssignee', label: '原负责人', width: '80px', render: v => v ? Helpers.escapeHtml(v) : '-' },
+        { key: '_poolOpps', label: '掉保商机数', width: '85px', render: (_, item) => {
           const count = Store.count('opportunities', o => o.customerId === item.id && o.poolStatus === 'in_pool');
           return count > 0 ? `<span class="text-primary" style="font-weight:600">${count}</span>` : '0';
         }},
-        { key: 'createdAt', label: '创建时间', width: '110px', sortable: true, render: v => Helpers.formatDate(v) },
+        { key: 'createdAt', label: '创建时间', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
       ],
       data,
       searchKeys: ['name', 'industry', 'phone'],
@@ -118,13 +125,20 @@ const CustomerPool = {
   _renderPendingTable(el, data) {
     const table = Components.DataTable({
       columns: [
-        { key: 'name', label: '客户名称', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
-        { key: 'type', label: '类型', width: '90px' },
-        { key: 'industry', label: '行业', width: '100px' },
-        { key: 'poolReason', label: '触发原因', width: '160px', render: v => Components.Badge(v || '超90天未成单（待审核）', this.REASON_MAP[v] || 'purple') },
-        { key: 'poolDate', label: '触发时间', width: '110px', sortable: true, render: v => Helpers.formatDate(v) },
-        { key: 'originalAssignee', label: '原负责人', width: '90px', render: v => v ? Helpers.escapeHtml(v) : '-' },
-        { key: '_highStageOpps', label: '高阶段商机', width: '120px', render: (_, item) => {
+        { key: 'name', label: '客户名称', sortable: true, render: (v, item) => {
+          const brandTag = item.isBrandCustomer === '是' && item.brandName ? ` <span class="badge badge-warning" style="font-size:10px">品牌</span>` : '';
+          return `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>${brandTag}`;
+        }},
+        { key: 'type', label: '类型', width: '70px' },
+        { key: 'businessLine', label: '业务线', width: '100px' },
+        { key: 'productLine', label: '产品线', width: '90px' },
+        { key: 'industry', label: '行业', width: '90px' },
+        { key: 'storeCount', label: '线下门店数', width: '80px' },
+        { key: 'isBrandCustomer', label: '品牌客户', width: '65px', render: v => v === '是' ? `<span style="color:var(--warning)">✓ 是</span>` : '否' },
+        { key: 'poolReason', label: '触发原因', width: '150px', render: v => Components.Badge(v || '超90天未成单（待审核）', this.REASON_MAP[v] || 'purple') },
+        { key: 'poolDate', label: '触发时间', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
+        { key: 'originalAssignee', label: '原负责人', width: '80px', render: v => v ? Helpers.escapeHtml(v) : '-' },
+        { key: '_highStageOpps', label: '高阶段商机', width: '110px', render: (_, item) => {
           const HIGH_STAGES = ['方案认可', '确定合作', '合同签约', '赢单'];
           const opps = Store.query('opportunities', o => o.customerId === item.id && HIGH_STAGES.includes(o.stage) && o.poolStatus !== 'in_pool');
           if (opps.length === 0) return '-';
