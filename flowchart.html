@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>区域销售部全链路系统流程图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    padding: 40px 20px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 30px;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+    border-radius: 16px;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(26,35,126,0.25);
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font-size: 16px;
+    opacity: 0.85;
+    letter-spacing: 2px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  .legend-color {
+    width: 24px;
+    height: 4px;
+    border-radius: 2px;
+  }
+  .legend-color.normal { background: #43a047; }
+  .legend-color.drop { background: #e53935; }
+  .legend-color.decision { background: #ff9800; }
+  .legend-color.process { background: #1e88e5; }
+
+  /* Connector between stages */
+  .connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    color: #90a4ae;
+  }
+  .connector .arrow-line {
+    width: 3px;
+    height: 36px;
+    background: linear-gradient(to bottom, #90a4ae, #546e7a);
+  }
+  .connector .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid #546e7a;
+    margin-top: -1px;
+  }
+
+  /* Stage Card */
+  .stage-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 0;
+    border-top: 5px solid #ccc;
+    transition: box-shadow 0.2s;
+  }
+  .stage-card:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+  }
+  .stage-card.stage-1 { border-top-color: #1565c0; }
+  .stage-card.stage-2 { border-top-color: #e65100; }
+  .stage-card.stage-3 { border-top-color: #2e7d32; }
+  .stage-card.stage-4 { border-top-color: #c62828; }
+  .stage-card.stage-5 { border-top-color: #6a1b9a; }
+  .stage-card.stage-6 { border-top-color: #00695c; }
+  .stage-card.stage-7 { border-top-color: #f9a825; }
+
+  .stage-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 28px;
+    border-bottom: 1px solid #eee;
+  }
+  .stage-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .stage-1 .stage-num { background: #1565c0; }
+  .stage-2 .stage-num { background: #e65100; }
+  .stage-3 .stage-num { background: #2e7d32; }
+  .stage-4 .stage-num { background: #c62828; }
+  .stage-5 .stage-num { background: #6a1b9a; }
+  .stage-6 .stage-num { background: #00695c; }
+  .stage-7 .stage-num { background: #f9a825; color: #333; }
+
+  .stage-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .stage-subtitle {
+    font-size: 13px;
+    color: #90a4ae;
+    margin-left: auto;
+  }
+
+  /* Flow Diagram Area */
+  .flow-area {
+    padding: 24px 28px;
+  }
+
+  /* Flow Nodes */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .node {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 100px;
+    max-width: 180px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .node.process {
+    background: #e3f2fd;
+    border: 2px solid #1e88e5;
+    color: #0d47a1;
+  }
+  .node.process-green {
+    background: #e8f5e9;
+    border: 2px solid #43a047;
+    color: #1b5e20;
+  }
+  .node.drop {
+    background: #ffebee;
+    border: 2px solid #e53935;
+    color: #b71c1c;
+  }
+  .node.drop::before {
+    content: "⚠ 掉保";
+    position: absolute;
+    top: -10px;
+    right: -6px;
+    font-size: 10px;
+    color: #c62828;
+    font-weight: 700;
+  }
+  .node.info {
+    background: #fff8e1;
+    border: 2px solid #ffb300;
+    color: #e65100;
+  }
+  .node.success {
+    background: #e8f5e9;
+    border: 2px solid #66bb6a;
+    color: #1b5e20;
+  }
+  .node.subtle {
+    background: #f5f5f5;
+    border: 2px dashed #bdbdbd;
+    color: #757575;
+  }
+  .node .small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #666;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Decision diamond */
+  .decision-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .decision {
+    width: 88px;
+    height: 88px;
+    transform: rotate(45deg);
+    border: 2.5px solid #ff9800;
+    background: #fff8e1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .decision-text {
+    transform: rotate(-45deg);
+    font-size: 13px;
+    font-weight: 600;
+    color: #e65100;
+    text-align: center;
+    line-height: 1.3;
+    width: 72px;
+  }
+
+  /* Arrows */
+  .arrow-h {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .arrow-h .line {
+    width: 28px;
+    height: 2.5px;
+  }
+  .arrow-h .head {
+    width: 0;
+    height: 0;
+    border-left: 7px solid;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .arrow-h.normal .line { background: #43a047; }
+  .arrow-h.normal .head { border-left-color: #43a047; }
+  .arrow-h.drop .line { background: #e53935; }
+  .arrow-h.drop .head { border-left-color: #e53935; }
+  .arrow-h.default .line { background: #78909c; }
+  .arrow-h.default .head { border-left-color: #78909c; }
+
+  /* Vertical arrow */
+  .arrow-v {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 24px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .arrow-v .line {
+    width: 2.5px;
+    height: 14px;
+  }
+  .arrow-v .head {
+    width: 0;
+    height: 0;
+    border-top: 7px solid;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+  }
+  .arrow-v.normal .line { background: #43a047; }
+  .arrow-v.normal .head { border-top-color: #43a047; }
+  .arrow-v.drop .line { background: #e53935; }
+  .arrow-v.drop .head { border-top-color: #e53935; }
+  .arrow-v.default .line { background: #78909c; }
+  .arrow-v.default .head { border-top-color: #78909c; }
+
+  /* Branch labels */
+  .branch-label {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    text-align: center;
+    min-width: 30px;
+  }
+  .branch-label.yes {
+    color: #2e7d32;
+    background: #e8f5e9;
+  }
+  .branch-label.no {
+    color: #c62828;
+    background: #ffebee;
+  }
+
+  /* Branch row */
+  .branch-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .branch-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Column layout within flow */
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Separator in flow */
+  .flow-sep {
+    width: 100%;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 16px 0;
+  }
+
+  /* Rules detail section */
+  .rules-section {
+    padding: 16px 28px 24px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .rules-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #78909c;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .rules-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    list-style: none;
+  }
+  .rules-list li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #555;
+    padding-left: 16px;
+    position: relative;
+  }
+  .rules-list li::before {
+    content: "›";
+    position: absolute;
+    left: 2px;
+    color: #90a4ae;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .rules-list li.important {
+    color: #c62828;
+  }
+  .rules-list li.important::before {
+    color: #e53935;
+  }
+  .rules-list li.success {
+    color: #2e7d32;
+  }
+  .rules-list li.success::before {
+    color: #43a047;
+  }
+
+  /* Flow with table-like layout for complex branches */
+  .flow-table {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+  }
+
+  .sub-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .rules-list {
+      grid-template-columns: 1fr;
+    }
+    .page-header h1 { font-size: 24px; }
+    .flow-row { flex-wrap: wrap; }
+    .branch-row { flex-direction: column; align-items: center; }
+  }
+
+  /* Visit badge */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .badge.visit { background: #e8f5e9; color: #2e7d32; }
+  .badge.review { background: #e3f2fd; color: #1565c0; }
+
+  /* Multi-line node text */
+  .node .multi {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  /* timeline marker */
+  .timeline-marker {
+    display: inline-block;
+    font-size: 11px;
+    color: #78909c;
+    background: #f5f5f5;
+    padding: 1px 8px;
+    border-radius: 8px;
+    margin-top: 3px;
+  }
+
+  /* Compact inline rules */
+  .inline-rules {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .inline-rule {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #e0e0e0;
+  }
+  .inline-rule.warn {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    color: #e65100;
+  }
+  .inline-rule.ok {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+  }
+
+  /* Arrow text label */
+  .arrow-label {
+    font-size: 11px;
+    color: #78909c;
+    margin: 0 4px;
+    white-space: nowrap;
+  }
+
+  /* Stage overview bar */
+  .overview-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 36px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    flex-wrap: wrap;
+  }
+  .overview-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .overview-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .overview-item span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #555;
+  }
+  .overview-arrow {
+    color: #bdbdbd;
+    font-size: 16px;
+    font-weight: 300;
+  }
+
+  /* Hover effect on the overview bar */
+  .overview-item:hover span {
+    color: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>区域销售部全链路系统流程图</h1>
+    <p>线索 · 客户 · 商机 · 订单 · 认款 · 开通 · 实施</p>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-color normal"></div>正常流程</div>
+      <div class="legend-item"><div class="legend-color drop"></div>掉保/异常</div>
+      <div class="legend-item"><div class="legend-color decision"></div>条件判断</div>
+      <div class="legend-item"><div class="legend-color process"></div>处理节点</div>
+    </div>
+  </div>
+
+  <!-- Overview Bar -->
+  <div class="overview-bar">
+    <div class="overview-item"><div class="overview-dot" style="background:#1565c0"></div><span>线索</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#e65100"></div><span>客户</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#2e7d32"></div><span>商机</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#c62828"></div><span>订单</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#6a1b9a"></div><span>认款</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#00695c"></div><span>开通</span></div>
+    <span class="overview-arrow">→</span>
+    <div class="overview-item"><div class="overview-dot" style="background:#f9a825"></div><span>实施</span></div>
+  </div>
+
+  <!-- ==================== Stage 1: 线索 ==================== -->
+  <div class="stage-card stage-1">
+    <div class="stage-header">
+      <div class="stage-num">01</div>
+      <div class="stage-title">线索</div>
+      <span class="stage-subtitle">Lead Management</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <!-- Main flow: 展会线索录入 -->
+        <div class="flow-row">
+          <div class="node process">展会线索录入<br><span class="multi">由区域销售录入系统</span></div>
+          <div class="arrow-h default">
+            <div class="line"></div>
+            <div class="head"></div>
+          </div>
+          <div class="decision-wrap">
+            <div class="decision">
+              <div class="decision-text">21天<br>转客户?</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decision branches -->
+        <div class="branch-row">
+          <!-- Yes branch -->
+          <div class="branch-item">
+            <div class="arrow-v normal"><div class="line"></div><div class="head"></div></div>
+            <div class="branch-label yes">是</div>
+            <div class="node process-green">转客户<br><span class="multi">进入客户管理</span></div>
+          </div>
+
+          <!-- No branch -->
+          <div class="branch-item">
+            <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+            <div class="branch-label no">否</div>
+            <div class="node drop">掉保至<br>线索公海</div>
+          </div>
+        </div>
+
+        <!-- Capacity check -->
+        <div class="flow-sep"></div>
+
+        <div class="flow-row">
+          <div class="decision-wrap">
+            <div class="decision">
+              <div class="decision-text">容量超<br>200个?</div>
+            </div>
+          </div>
+          <div class="arrow-h drop">
+            <div class="line"></div>
+            <div class="head"></div>
+          </div>
+          <div class="branch-item">
+            <div class="branch-label no" style="margin-bottom:0">是</div>
+          </div>
+          <div class="node drop">无法录入 / 申领</div>
+        </div>
+      </div>
+    </div>
+    <div class="rules-section">
+      <div class="rules-title">📋 线索环节规则说明</div>
+      <ul class="rules-list">
+        <li>展会线索由区域销售录入系统线索中，经过清洗转客户</li>
+        <li>若21天未转客户则掉保至线索公海</li>
+        <li class="important">若超过200个容量则无法录入、申领</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 2: 客户 ==================== -->
+  <div class="stage-card stage-2">
+    <div class="stage-header">
+      <div class="stage-num">02</div>
+      <div class="stage-title">客户</div>
+      <span class="stage-subtitle">Customer Management</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <!-- Overview -->
+        <div class="node info" style="margin-bottom:16px">客户总容量：45个</div>
+
+        <!-- Two paths side by side -->
+        <div style="display:flex; gap:40px; justify-content:center; flex-wrap:wrap;">
+          <!-- SDR派单客户 -->
+          <div class="col">
+            <div class="node process" style="min-width:140px">SDR派单客户<br><span class="multi">SDR分配</span></div>
+            <div class="arrow-v default"><div class="line"></div><div class="head"></div></div>
+
+            <div class="col" style="gap:8px">
+              <!-- Decision 1 -->
+              <div class="decision-wrap">
+                <div class="decision">
+                  <div class="decision-text">90天<br>未成单?</div>
+                </div>
+              </div>
+              <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label no">是</div>
+              <div class="node drop">掉保回<br>SDR私海</div>
+            </div>
+
+            <div style="display:flex; align-items:center; margin:8px 0; color:#bdbdbd; font-size:13px; gap:8px;">
+              <span style="flex:1; height:1px; background:#e0e0e0"></span>
+              <span>或</span>
+              <span style="flex:1; height:1px; background:#e0e0e0"></span>
+            </div>
+
+            <div class="col" style="gap:8px">
+              <div class="decision-wrap">
+                <div class="decision">
+                  <div class="decision-text">3天未拜访<br>且3天<br>未写跟进?</div>
+                </div>
+              </div>
+              <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label no">是</div>
+              <div class="node drop">掉保回<br>SDR私海</div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div style="width:1px; background:#e0e0e0; min-height:280px; align-self:stretch;"></div>
+
+          <!-- 销售自拓客户 -->
+          <div class="col">
+            <div class="node process" style="min-width:140px">销售自拓客户<br><span class="multi">销售自行拓展</span></div>
+            <div class="arrow-v default"><div class="line"></div><div class="head"></div></div>
+
+            <div class="col" style="gap:8px">
+              <div class="decision-wrap">
+                <div class="decision">
+                  <div class="decision-text">90天<br>未成单?</div>
+                </div>
+              </div>
+              <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label no">是</div>
+              <div class="node drop">掉保至<br>客户公海</div>
+            </div>
+
+            <div style="display:flex; align-items:center; margin:8px 0; color:#bdbdbd; font-size:13px; gap:8px;">
+              <span style="flex:1; height:1px; background:#e0e0e0"></span>
+              <span>或</span>
+              <span style="flex:1; height:1px; background:#e0e0e0"></span>
+            </div>
+
+            <div class="col" style="gap:8px">
+              <div class="decision-wrap">
+                <div class="decision">
+                  <div class="decision-text">30天未<br>创建<br>商机?</div>
+                </div>
+              </div>
+              <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label no">是</div>
+              <div class="node drop">掉保至<br>客户公海</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rules-section">
+      <div class="rules-title">📋 客户环节规则说明</div>
+      <ul class="rules-list">
+        <li>其他自拓线索由区域销售录入系统客户中</li>
+        <li>客户中含 SDR 派单客户和销售自拓客户</li>
+        <li class="important">客户总容量 45 个</li>
+        <li class="important">SDR派单：90天未成单 或 3天未拜访且3天未写跟进 → 掉保回SDR私海</li>
+        <li class="important">销售自拓：90天未成单 或 30天未创建商机 → 掉保至客户公海</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 3: 商机 ==================== -->
+  <div class="stage-card stage-3">
+    <div class="stage-header">
+      <div class="stage-num">03</div>
+      <div class="stage-title">商机</div>
+      <span class="stage-subtitle">Opportunity Management</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+
+        <!-- 10% / 30% stage -->
+        <div style="display:flex; align-items:center; gap:16px; justify-content:center; flex-wrap:wrap; width:100%;">
+          <span style="font-size:13px; font-weight:600; color:#1565c0; background:#e3f2fd; padding:4px 16px; border-radius:20px;">10% / 30% 阶段</span>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="decision-wrap">
+            <div class="decision">
+              <div class="decision-text">每7天<br>跟进?</div>
+            </div>
+          </div>
+          <div class="branch-row" style="margin-top:0">
+            <div class="branch-item">
+              <div class="arrow-v normal"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label yes">是</div>
+              <div class="node process-green">不掉保<br><span class="multi">继续推进</span></div>
+            </div>
+            <div class="branch-item">
+              <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+              <div class="branch-label no">否</div>
+              <div class="node drop">客户+商机<br>掉保</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-sep"></div>
+
+        <!-- 50% stage -->
+        <div style="display:flex; align-items:center; gap:16px; justify-content:center; flex-wrap:wrap; width:100%;">
+          <span style="font-size:13px; font-weight:600; color:#e65100; background:#fff3e0; padding:4px 16px; border-radius:20px;">50% 阶段</span>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process-green" style="min-width:130px">拜访记录<br><span class="multi">至少1次</span></div>
+        </div>
+        <div class="flow-row" style="margin-top:8px">
+          <div class="branch-row" style="margin-top:0">
+            <div class="branch-item">
+              <div class="arrow-v default"><div class="line"></div><div class="head"></div></div>
+              <div class="decision-wrap">
+                <div class="decision">
+                  <div class="decision-text">每7天<br>跟进?</div>
+                </div>
+              </div>
+              <div class="branch-row" style="margin-top:0">
+                <div class="branch-item">
+                  <div class="arrow-v normal"><div class="line"></div><div class="head"></div></div>
+                  <div class="branch-label yes">是</div>
+                  <div class="node process-green" style="min-width:80px">不掉保</div>
+                </div>
+                <div class="branch-item">
+                  <div class="arrow-v drop"><div class="line"></div><div class="head"></div></div>
+                  <div class="branch-label no">否</div>
+                  <div class="node drop" style="min-width:80px">掉保</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-sep"></div>
+
+        <!-- 70% / 90% / 100% stage -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
+          <span style="font-size:13px; font-weight:600; color:#2e7d32; background:#e8f5e9; padding:4px 16px; border-radius:20px;">70% / 90% / 100% 阶段</span>
+          <div class="flow-row">
+            <div class="node process-green" style="min-width:130px">拜访记录<br><span class="multi">至少1次</span></div>
+            <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+            <div class="node success">管理层审核<br><span class="multi">审核通过</span></div>
+            <div class="arrow-h normal"><div class="line"></div><div class="head"></div></div>
+            <div class="node process-green">不掉保</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="rules-section">
+      <div class="rules-title">📋 商机环节规则说明</div>
+      <ul class="rules-list">
+        <li class="important">10%、30% 商机阶段：要求每7天跟进一次，否则客户和商机掉保</li>
+        <li class="important">50% 商机阶段：要求至少1次拜访记录，且需每7天跟进一次</li>
+        <li class="success">70%、90%、100% 三个阶段：至少1次拜访记录，管理层审核后不掉保</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 4: 订单 ==================== -->
+  <div class="stage-card stage-4">
+    <div class="stage-header">
+      <div class="stage-num">04</div>
+      <div class="stage-title">订单</div>
+      <span class="stage-subtitle">Order Management</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <div class="flow-row">
+          <div class="node process">提单<br><span class="multi">发起订单流程</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node info" style="min-width:140px">关联商机<br><span class="multi">必须关联</span></div>
+          <div class="arrow-h normal"><div class="line"></div><div class="head"></div></div>
+          <div class="node process-green">提单完成<br><span class="multi">进入认款环节</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="rules-section">
+      <div class="rules-title">📋 订单环节规则说明</div>
+      <ul class="rules-list">
+        <li class="important">提单需关联商机</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 5: 认款 ==================== -->
+  <div class="stage-card stage-5">
+    <div class="stage-header">
+      <div class="stage-num">05</div>
+      <div class="stage-title">认款</div>
+      <span class="stage-subtitle">Payment Confirmation</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <div class="flow-row">
+          <div class="node process">客户付款<br><span class="multi">按合同支付</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process">财务确认<br><span class="multi">到账核验</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process-green">认款完成<br><span class="multi">进入开通环节</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 6: 开通 ==================== -->
+  <div class="stage-card stage-6">
+    <div class="stage-header">
+      <div class="stage-num">06</div>
+      <div class="stage-title">开通</div>
+      <span class="stage-subtitle">Activation</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <div class="flow-row">
+          <div class="node process">系统开通<br><span class="multi">配置账号权限</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process">通知客户<br><span class="multi">发送开通确认</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process-green">开通完成<br><span class="multi">进入实施环节</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ==================== Stage 7: 实施 ==================== -->
+  <div class="stage-card stage-7">
+    <div class="stage-header">
+      <div class="stage-num">07</div>
+      <div class="stage-title">实施</div>
+      <span class="stage-subtitle">Implementation</span>
+    </div>
+    <div class="flow-area">
+      <div class="flow-table">
+        <div class="flow-row">
+          <div class="node process">实施交付<br><span class="multi">部署与配置</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process">培训验收<br><span class="multi">客户培训与验收</span></div>
+          <div class="arrow-h default"><div class="line"></div><div class="head"></div></div>
+          <div class="node process-green">实施完成<br><span class="multi">全链路闭环</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; margin-top:40px; padding:20px; color:#90a4ae; font-size:13px;">
+    区域销售部全链路系统流程图 · 仅供参考
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -6,10 +6,11 @@ const Products = {
 
   FIELDS: [
     { key: 'name', label: '产品名称', type: 'text', required: true, showInTable: true, placeholder: '请输入产品名称' },
-    { key: 'code', label: '产品编码', type: 'text', required: true, showInTable: true, placeholder: 'P001' },
-    { key: 'category', label: '分类', type: 'select', showInTable: true, options: ['软件产品', '硬件设备', '技术服务', '咨询服务', '培训课程', '其他'] },
+    { key: 'productId', label: '商品ID', type: 'text', showInTable: true, placeholder: '商品ID' },
+    { key: 'category', label: '商品类型', type: 'select', showInTable: true, options: ['解决方案'], default: '解决方案' },
+    { key: 'productLine', label: '产品线', type: 'select', showInTable: true, options: ['新零售', '零售SaaS', 'TSO', '零售SAAS', '智慧商超', '智慧医药', '视频号', 'GEO'] },
     { key: 'price', label: '标准单价（元）', type: 'number', required: true, showInTable: true, step: '0.01', min: 0, placeholder: '0.00' },
-    { key: 'unit', label: '单位', type: 'select', showInTable: true, options: ['个', '套', '年', '月', '次', '人/天'] },
+    { key: 'unit', label: '单位', type: 'select', showInTable: true, options: ['套', '个', '年', '月', '次', '人/天'] },
     { key: 'status', label: '状态', type: 'select', required: true, showInTable: true, options: ['在售', '停售'], default: '在售' },
     { key: 'description', label: '描述', type: 'textarea', fullWidth: true, placeholder: '产品描述...' },
   ],
@@ -40,15 +41,16 @@ const Products = {
     const table = Components.DataTable({
       columns: [
         { key: 'name', label: '产品名称', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
-        { key: 'code', label: '编码', width: '100px' },
-        { key: 'category', label: '分类', width: '100px' },
+        { key: 'productId', label: '商品ID', width: '160px', render: v => v ? `<span class="font-mono">${Helpers.escapeHtml(v)}</span>` : '-' },
+        { key: 'category', label: '类型', width: '80px' },
+        { key: 'productLine', label: '产品线', width: '140px' },
         { key: 'price', label: '单价', width: '120px', sortable: true, render: v => `<strong>${Helpers.formatMoney(v)}</strong>` },
         { key: 'unit', label: '单位', width: '60px' },
         { key: 'status', label: '状态', width: '80px', render: v => Components.Badge(v, Products.STATUS_MAP[v] || 'gray') },
         { key: 'updatedAt', label: '更新时间', width: '120px', sortable: true, render: v => Helpers.formatDate(v) },
       ],
       data,
-      searchKeys: ['name', 'code', 'category'],
+      searchKeys: ['name', 'productId', 'productLine'],
       searchPlaceholder: '搜索产品名称、编码...',
       actions: {
         onView: (id) => Router.navigate(`#/products/view/${id}`),
@@ -105,8 +107,9 @@ const Products = {
         <div class="card-header"><h3 class="card-title">基本信息</h3></div>
         ${Components.DetailCard([
           { key: 'name', label: '产品名称' },
-          { key: 'code', label: '产品编码' },
-          { key: 'category', label: '分类' },
+          { key: 'productId', label: '商品ID' },
+          { key: 'category', label: '商品类型' },
+          { key: 'productLine', label: '产品线' },
           { key: 'price', label: '标准单价', render: v => Helpers.formatMoney(v) },
           { key: 'unit', label: '单位' },
           { key: 'status', label: '状态', render: v => Components.Badge(v, Products.STATUS_MAP[v] || 'gray') },

@@ -34,7 +34,7 @@ const Contacts = {
     const table = Components.DataTable({
       columns: [
         { key: 'name', label: '姓名', sortable: true, render: (v, item) => {
-          const primary = item.isPrimary === true || item.isPrimary === 'true' ? ' <span class="badge badge-primary" style="margin-left:4px">主要</span>' : '';
+          const primary = item.isPrimary === true || item.isPrimary === 'true' ? ' <span class="badge badge-primary" style="margin-left:4px">决策人</span>' : '';
           return `<strong>${Helpers.escapeHtml(v || '')}</strong>${primary}`;
         }},
         { key: 'title', label: '职位', width: '120px' },
@@ -79,7 +79,7 @@ const Contacts = {
       `;
     } else {
       const rows = contacts.map(c => {
-        const primary = c.isPrimary === true || c.isPrimary === 'true' ? '<span class="badge badge-primary" style="margin-left:4px">主要</span>' : '';
+        const primary = c.isPrimary === true || c.isPrimary === 'true' ? '<span class="badge badge-primary" style="margin-left:4px">决策人</span>' : '';
         return `<tr>
           <td><strong>${Helpers.escapeHtml(c.name)}</strong>${primary}</td>
           <td>${Helpers.escapeHtml(c.title || '-')}</td>
