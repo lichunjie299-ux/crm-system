@@ -15,6 +15,7 @@ const Components = {
     activeFilter,   // 当前激活筛选值
     onFilterChange, // 筛选切换回调
     filterFields,   // [{ key, label, type, placeholder, options }] 筛选下拉字段
+    defaultVisibleFilters = 0, // 默认展示的筛选项数量，其余折叠（0 表示全部展开）
     filterValues,   // { key: value } 当前筛选值
     onFilterSearch, // 筛选查询回调
     onFilterReset,  // 筛选重置回调
@@ -49,6 +50,30 @@ const Components = {
       );
     }
 
+    function _checkDateRange(itemVal, period, start, end) {
+      if (!itemVal) return false;
+      const itemDate = new Date(itemVal);
+      if (period === 'custom') {
+        if (start && itemDate < new Date(start)) return false;
+        if (end) { const endDate = new Date(end); endDate.setHours(23,59,59); if (itemDate > endDate) return false; }
+        return true;
+      }
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      let rangeStart, rangeEnd;
+      if (period === '本月') {
+        rangeStart = new Date(year, month, 1);
+        rangeEnd = new Date(year, month + 1, 0, 23, 59, 59);
+      } else if (period === '下月') {
+        rangeStart = new Date(year, month + 1, 1);
+        rangeEnd = new Date(year, month + 2, 0, 23, 59, 59);
+      } else {
+        return true;
+      }
+      return itemDate >= rangeStart && itemDate <= rangeEnd;
+    }
+
     function applyFilterFields(items) {
       if (!currentFilterValues || !filterFields) return items;
       return items.filter(item => {
@@ -56,30 +81,33 @@ const Components = {
           if (f.type === 'dateRange') {
             const period = currentFilterValues[f.key + '_period'];
             if (!period) return true;
-            const itemVal = item[f.key];
-            if (!itemVal) return false;
-            const itemDate = new Date(itemVal);
-            if (period === 'custom') {
-              const start = currentFilterValues[f.key + '_start'];
-              const end = currentFilterValues[f.key + '_end'];
-              if (start && itemDate < new Date(start)) return false;
-              if (end) { const endDate = new Date(end); endDate.setHours(23,59,59); if (itemDate > endDate) return false; }
-              return true;
+            return _checkDateRange(item[f.key], period, currentFilterValues[f.key + '_start'], currentFilterValues[f.key + '_end']);
+          }
+          if (f.type === 'timeDimension') {
+            const dim = currentFilterValues[f.key + '_dim'];
+            const period = currentFilterValues[f.key + '_period'];
+            if (!dim || !period) return true;
+            const targetField = dim;
+            const itemVal = item[targetField];
+            // 对于无此字段的记录，尝试从关联数据获取
+            if (!itemVal) {
+              // 如果是最近跟进时间，尝试从跟进记录中获取
+              if (targetField === 'lastFollowupAt') {
+                const followups = (window.Store ? Store.query('followups', fu => fu.relatedType === 'opportunity' && fu.relatedId === item.id) : []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                if (followups.length === 0) return false;
+                return _checkDateRange(followups[0].createdAt, period, currentFilterValues[f.key + '_start'], currentFilterValues[f.key + '_end']);
+              }
+              if (targetField === 'nextFollowupAt') {
+                const followups = (window.Store ? Store.query('followups', fu => fu.relatedType === 'opportunity' && fu.relatedId === item.id) : []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                if (followups.length === 0) return false;
+                // 下次跟进时间 = 最近跟进 + 7天（模拟）
+                const lastDate = new Date(followups[0].createdAt);
+                lastDate.setDate(lastDate.getDate() + 7);
+                return _checkDateRange(lastDate.toISOString(), period, currentFilterValues[f.key + '_start'], currentFilterValues[f.key + '_end']);
+              }
+              return false;
             }
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            let rangeStart, rangeEnd;
-            if (period === '本月') {
-              rangeStart = new Date(year, month, 1);
-              rangeEnd = new Date(year, month + 1, 0, 23, 59, 59);
-            } else if (period === '下月') {
-              rangeStart = new Date(year, month + 1, 1);
-              rangeEnd = new Date(year, month + 2, 0, 23, 59, 59);
-            } else {
-              return true;
-            }
-            return itemDate >= rangeStart && itemDate <= rangeEnd;
+            return _checkDateRange(itemVal, period, currentFilterValues[f.key + '_start'], currentFilterValues[f.key + '_end']);
           }
           if (f.customFilter) {
             return f.customFilter(item, currentFilterValues[f.key]);
@@ -121,40 +149,69 @@ const Components = {
       // 筛选下拉区
       let filterAreaHtml = '';
       if (filterFields && filterFields.length) {
-        const fieldsHtml = filterFields.map(f => {
+        const visibleCount = defaultVisibleFilters > 0 ? Math.min(defaultVisibleFilters, filterFields.length) : filterFields.length;
+        const hasMore = defaultVisibleFilters > 0 && filterFields.length > defaultVisibleFilters;
+
+        const fieldsHtml = filterFields.map((f, idx) => {
+          const isHidden = hasMore && idx >= visibleCount;
           const val = currentFilterValues[f.key] || '';
+          let fieldHtml = '';
           if (f.type === 'select' && f.options) {
-            const optsHtml = `<option value="">${Helpers.escapeHtml(f.placeholder || '请选择')}</option>` +
+            const optsHtml = `<option value="">${Helpers.escapeHtml(f.label)}</option>` +
               f.options.map(o => `<option value="${Helpers.escapeHtml(o)}" ${val === o ? 'selected' : ''}>${Helpers.escapeHtml(o)}</option>`).join('');
-            return `<div class="filter-field"><label class="filter-field-label">${Helpers.escapeHtml(f.label)}</label><select class="form-select filter-select" data-filter-key="${f.key}">${optsHtml}</select></div>`;
+            fieldHtml = `<div class="filter-field"><select class="form-select filter-select" data-filter-key="${f.key}">${optsHtml}</select></div>`;
           } else if (f.type === 'dateRange') {
             const valStart = currentFilterValues[f.key + '_start'] || '';
             const valEnd = currentFilterValues[f.key + '_end'] || '';
             const periodVal = currentFilterValues[f.key + '_period'] || '';
             const periodOpts = (f.periodOptions || ['本月', '下月']).map(o => `<option value="${Helpers.escapeHtml(o)}" ${periodVal === o ? 'selected' : ''}>${Helpers.escapeHtml(o)}</option>`).join('');
-            return `<div class="filter-field filter-field-daterange"><label class="filter-field-label">${Helpers.escapeHtml(f.label)}</label><select class="form-select filter-select filter-period" data-filter-key="${f.key}_period"><option value="">全部</option>${periodOpts}<option value="custom" ${periodVal === 'custom' ? 'selected' : ''}>自定义</option></select><div class="filter-daterange-inputs" style="display:${periodVal === 'custom' ? 'flex' : 'none'};gap:4px;align-items:center"><input type="date" class="form-input filter-date" data-filter-key="${f.key}_start" value="${Helpers.escapeHtml(String(valStart))}"><span style="color:var(--text-muted)">~</span><input type="date" class="form-input filter-date" data-filter-key="${f.key}_end" value="${Helpers.escapeHtml(String(valEnd))}"></div></div>`;
+            fieldHtml = `<div class="filter-field filter-field-daterange"><select class="form-select filter-select filter-period" data-filter-key="${f.key}_period"><option value="">${Helpers.escapeHtml(f.label)}</option>${periodOpts}<option value="custom" ${periodVal === 'custom' ? 'selected' : ''}>自定义</option></select><div class="filter-daterange-inputs" style="display:${periodVal === 'custom' ? 'flex' : 'none'};gap:4px;align-items:center"><input type="date" class="form-input filter-date" data-filter-key="${f.key}_start" value="${Helpers.escapeHtml(String(valStart))}"><span style="color:var(--text-muted)">~</span><input type="date" class="form-input filter-date" data-filter-key="${f.key}_end" value="${Helpers.escapeHtml(String(valEnd))}"></div></div>`;
+          } else if (f.type === 'timeDimension') {
+            const dimVal = currentFilterValues[f.key + '_dim'] || '';
+            const periodVal = currentFilterValues[f.key + '_period'] || '';
+            const valStart = currentFilterValues[f.key + '_start'] || '';
+            const valEnd = currentFilterValues[f.key + '_end'] || '';
+            const dimOpts = (f.dimOptions || []).map(o => `<option value="${Helpers.escapeHtml(o.key)}" ${dimVal === o.key ? 'selected' : ''}>${Helpers.escapeHtml(o.label)}</option>`).join('');
+            const periodOpts = (f.periodOptions || ['本月', '下月']).map(o => `<option value="${Helpers.escapeHtml(o)}" ${periodVal === o ? 'selected' : ''}>${Helpers.escapeHtml(o)}</option>`).join('');
+            fieldHtml = `<div class="filter-field filter-field-daterange">
+              <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+                <select class="form-select filter-select" data-filter-key="${f.key}_dim" style="min-width:120px"><option value="">${Helpers.escapeHtml(f.label)}</option>${dimOpts}</select>
+                <select class="form-select filter-select filter-period" data-filter-key="${f.key}_period" style="min-width:100px"><option value="">全部</option>${periodOpts}<option value="custom" ${periodVal === 'custom' ? 'selected' : ''}>自定义</option></select>
+                <div class="filter-daterange-inputs" style="display:${periodVal === 'custom' ? 'flex' : 'none'};gap:4px;align-items:center"><input type="date" class="form-input filter-date" data-filter-key="${f.key}_start" value="${Helpers.escapeHtml(String(valStart))}"><span style="color:var(--text-muted)">~</span><input type="date" class="form-input filter-date" data-filter-key="${f.key}_end" value="${Helpers.escapeHtml(String(valEnd))}"></div>
+              </div></div>`;
           } else {
-            return `<div class="filter-field"><label class="filter-field-label">${Helpers.escapeHtml(f.label)}</label><input type="text" class="form-input filter-input" placeholder="${Helpers.escapeHtml(f.placeholder || '')}" value="${Helpers.escapeHtml(val)}" data-filter-key="${f.key}"></div>`;
+            fieldHtml = `<div class="filter-field"><input type="text" class="form-input filter-input" placeholder="${Helpers.escapeHtml(f.label)}" value="${Helpers.escapeHtml(val)}" data-filter-key="${f.key}"></div>`;
           }
+          if (isHidden) {
+            return `<div class="filter-field-more" style="display:none">${fieldHtml}</div>`;
+          }
+          return fieldHtml;
         }).join('');
 
+        const moreBtnHtml = hasMore ? `<button class="btn btn-text btn-sm" id="filter-more-btn" style="align-self:flex-end;white-space:nowrap;color:var(--primary);font-size:12px">更多筛选 <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="6 9 12 15 18 9"/></svg></button>` : '';
+
         filterAreaHtml = `<div class="table-filter-area">
-          <div class="filter-fields-row">${fieldsHtml}</div>
-          <div class="filter-actions-row">
-            <button class="btn btn-primary btn-sm" id="filter-search-btn"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg> 查询</button>
-            <button class="btn btn-secondary btn-sm" id="filter-reset-btn"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M1 4v6h6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" fill="none" stroke="currentColor" stroke-width="2"/></svg> 重置</button>
+          <div class="filter-fields-row">${fieldsHtml}
+            ${moreBtnHtml}
+            <div class="filter-actions-inline">
+              <button class="btn btn-primary btn-sm" id="filter-search-btn"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg> 查询</button>
+              <button class="btn btn-secondary btn-sm" id="filter-reset-btn"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M1 4v6h6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" fill="none" stroke="currentColor" stroke-width="2"/></svg> 重置</button>
+            </div>
           </div>
         </div>`;
       }
 
-      // 工具栏
-      let toolbarHtml = `<div class="table-toolbar">
-        <div class="table-toolbar-left">
-          ${toolbarExtra || ''}
-        </div>
-        <div class="table-toolbar-right">
-        </div>
-      </div>`;
+      // 工具栏（仅当有内容时渲染）
+      let toolbarHtml = '';
+      if (toolbarExtra) {
+        toolbarHtml = `<div class="table-toolbar">
+          <div class="table-toolbar-left">
+            ${toolbarExtra}
+          </div>
+          <div class="table-toolbar-right">
+          </div>
+        </div>`;
+      }
 
       // 筛选标签（保留兼容）
       let filterHtml = '';
@@ -324,6 +381,20 @@ const Components = {
           page = 1;
           if (onFilterReset) onFilterReset();
           else render();
+        });
+      }
+
+      // 更多筛选 折叠/展开 按钮
+      const moreBtn = container.querySelector('#filter-more-btn');
+      if (moreBtn) {
+        let moreExpanded = false;
+        moreBtn.addEventListener('click', () => {
+          moreExpanded = !moreExpanded;
+          const hiddenFields = container.querySelectorAll('.filter-field-more');
+          hiddenFields.forEach(el => { el.style.display = moreExpanded ? '' : 'none'; });
+          moreBtn.innerHTML = moreExpanded
+            ? '收起筛选 <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="18 15 12 9 6 15"/></svg>'
+            : '更多筛选 <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="6 9 12 15 18 9"/></svg>';
         });
       }
 

@@ -9,6 +9,7 @@ const Contracts = {
 
   FIELDS: [
     { key: 'contractNo', label: '合同编号', type: 'text', required: true, placeholder: '如：HT-2026-001' },
+    { key: 'tabType', label: '合同分类', type: 'select', required: true, options: ['主合同', '补充协议'], default: '主合同' },
     { key: 'contractType', label: '合同类型', type: 'select', required: true, options: ['标准合同', '非标合同'], default: '标准合同' },
     { key: 'customerId', label: '客户名称', type: 'select', required: true, options: [] },
     { key: 'isSealed', label: '是否盖章', type: 'select', required: true, options: ['是', '否'], default: '否' },
@@ -40,6 +41,7 @@ const Contracts = {
 
     const filterFields = [
       { key: 'contractNo', label: '合同编号', type: 'text', placeholder: '请输入合同编号' },
+      { key: 'tabType', label: '合同分类', type: 'select', placeholder: '请选择', options: ['主合同', '补充协议'] },
       { key: 'contractType', label: '合同类型', type: 'select', placeholder: '请选择', options: ['标准合同', '非标合同'] },
       { key: 'status', label: '合同状态', type: 'select', placeholder: '请选择', options: ['待归档', '已归档', '已作废'] },
       { key: 'isSealed', label: '盖章状态', type: 'select', placeholder: '请选择', options: ['是', '否'] },
@@ -48,7 +50,9 @@ const Contracts = {
     const table = Components.DataTable({
       columns: [
         { key: 'contractNo', label: '合同编号', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
-        { key: 'contractType', label: '合同类型', width: '100px', render: v => v || '-' },
+        { key: 'contractType', label: '合同类型', width: '100px', render: (v, item) => {
+          return Helpers.escapeHtml(v || '-');
+        } },
         { key: 'customerId', label: '客户名称', render: v => { const c = Store.getById('customers', v); return c ? Helpers.escapeHtml(c.name) : '-'; } },
         { key: 'amount', label: '合同金额', width: '130px', sortable: true, render: v => `<strong style="color:var(--primary)">${Helpers.formatMoney(v)}</strong>` },
         { key: 'status', label: '合同状态', width: '90px', render: v => Components.Badge(v, this.STATUS_MAP[v] || 'gray') },
@@ -133,6 +137,12 @@ const Contracts = {
     const sealLabel = item.isSealed === '是' ? '已盖章' : '未盖章';
     const sealType = this.SEAL_MAP[sealLabel] || 'gray';
 
+    // 查询关联子订单
+    var subOrders = Store.query('orders', function(o) { return o.parentOrderNo === item.relatedOrderNo; });
+    var subOrderHtml = subOrders.length > 0
+      ? subOrders.map(function(s) { return '<span class="font-mono" style="margin-right:var(--space-2);display:inline-block">' + Helpers.escapeHtml(s.orderNo) + '</span>'; }).join('')
+      : '-';
+
     const el = document.createElement('div');
     el.innerHTML = `
       <div class="page-header">
@@ -150,6 +160,7 @@ const Contracts = {
         <div class="card-body">
           <div class="detail-card">
             <div class="detail-field"><div class="field-label">合同编号</div><div class="field-value font-mono">${Helpers.escapeHtml(item.contractNo || '')}</div></div>
+            <div class="detail-field"><div class="field-label">合同分类</div><div class="field-value">${Helpers.escapeHtml(item.tabType || '主合同')}</div></div>
             <div class="detail-field"><div class="field-label">合同类型</div><div class="field-value">${Helpers.escapeHtml(item.contractType || '')}</div></div>
             <div class="detail-field"><div class="field-label">客户名称</div><div class="field-value">${customer ? Helpers.escapeHtml(customer.name) : '-'}</div></div>
             <div class="detail-field"><div class="field-label">合同金额</div><div class="field-value"><strong style="color:var(--primary)">${Helpers.formatMoney(item.amount)}</strong></div></div>
@@ -158,6 +169,7 @@ const Contracts = {
             <div class="detail-field"><div class="field-label">签约人</div><div class="field-value">${Helpers.escapeHtml(item.signer || '')}</div></div>
             <div class="detail-field"><div class="field-label">签约时间</div><div class="field-value">${Helpers.formatDate(item.signDate) || '-'}</div></div>
             <div class="detail-field"><div class="field-label">关联订单编号</div><div class="field-value font-mono">${item.relatedOrderNo ? Helpers.escapeHtml(item.relatedOrderNo) : '-'}</div></div>
+            <div class="detail-field"><div class="field-label">关联子订单编号</div><div class="field-value font-mono" style="font-size:var(--text-xs)">${subOrderHtml}</div></div>
             <div class="detail-field full-width"><div class="field-label">备注</div><div class="field-value">${Helpers.escapeHtml(item.remark || '无')}</div></div>
           </div>
         </div>
@@ -206,5 +218,6 @@ const Contracts = {
 
   init() {
     Router.register('#/contracts', () => this.renderList());
+    Router.register('#/contracts/view/:id', ({ id }) => this.viewContract(id));
   }
 };

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=yes">
+  <title>涅槃CRM - 移动端设计稿</title>
+  <link rel="stylesheet" href="css/mobile.css">
+  <style>
+    /* === iPhone Frame === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a1a !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .phone-frame {
+      position: relative;
+      width: 393px;
+      height: 852px;
+      background: #fff;
+      border-radius: 55px;
+      padding: 20px;
+      box-shadow:
+        0 0 0 2px #3a3a3c,
+        0 0 0 4px #1a1a1a,
+        0 0 0 6px #2c2c2e,
+        0 0 0 8px #1a1a1a,
+        0 25px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Side buttons */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: 180px;
+      width: 4px;
+      height: 60px;
+      background: #3a3a3c;
+      border-radius: 2px 0 0 2px;
+      z-index: 10;
+    }
+
+    .phone-frame::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 160px;
+      width: 4px;
+      height: 80px;
+      background: #3a3a3c;
+      border-radius: 0 2px 2px 0;
+      z-index: 10;
+    }
+
+    .phone-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 38px;
+      overflow: hidden;
+      background: var(--ios-bg);
+      position: relative;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 26px;
+      background: #000;
+      border-radius: 16px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dynamic-island-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #1a1a2e;
+      margin-right: 14px;
+    }
+
+    .dynamic-island-cam {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #1a1a3e;
+      border: 2px solid #2a2a4e;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      z-index: 998;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 4px 24px 2px;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .status-time {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      min-width: 48px;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #fff;
+    }
+
+    .status-icons svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* Home Indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 100px;
+      z-index: 999;
+    }
+
+    /* The actual app fills the phone inner */
+    #app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Override fixed positioning to work inside the frame */
+    .nav-bar {
+      position: absolute !important;
+      top: 0;
+      left: 0;
+      right: 0;
+      --ios-safe-top: 36px;
+      height: calc(var(--nav-height) + 36px);
+      z-index: 100;
+    }
+
+    .page-container {
+      position: absolute !important;
+      top: calc(36px + var(--nav-height));
+      left: 0;
+      right: 0;
+      bottom: calc(var(--tab-height) + var(--ios-safe-bottom, 0px));
+    }
+
+    .tab-bar {
+      position: absolute !important;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(var(--tab-height) + 16px);
+      padding-bottom: 16px;
+    }
+
+    .bottom-bar {
+      position: absolute !important;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .action-sheet, .action-sheet-overlay,
+    .confirm-overlay, .form-overlay, .form-modal {
+      position: absolute !important;
+      z-index: 200;
+    }
+
+    .toast {
+      position: absolute !important;
+      z-index: 300;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="phone-inner">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span class="status-time" id="status-time">9:41</span>
+        <div class="status-icons">
+          <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><rect x="4" y="9" width="16" height="6" rx="1" fill="currentColor"/><rect x="20" y="10" width="2" height="4" rx="1"/></svg>
+        </div>
+      </div>
+
+      <!-- Dynamic Island -->
+      <div class="dynamic-island">
+        <span class="dynamic-island-dot"></span>
+        <span class="dynamic-island-cam"></span>
+      </div>
+
+      <!-- App Content -->
+      <div id="app">
+        <div class="nav-bar" id="nav-bar">
+          <div class="nav-bar-inner">
+            <div class="nav-left" id="nav-left"></div>
+            <div class="nav-title" id="nav-title">涅槃CRM</div>
+            <div class="nav-right" id="nav-right"></div>
+          </div>
+        </div>
+
+        <div class="page-container" id="page-container"></div>
+
+        <div class="tab-bar" id="tab-bar">
+          <button class="tab-item" data-tab="leads">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>线索</span>
+          </button>
+          <button class="tab-item" data-tab="customers">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>客户</span>
+          </button>
+          <button class="tab-item" data-tab="opportunities">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>商机</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Home Indicator -->
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/utils/helpers.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/mobile-app.js"></script>
+  <script src="js/modules/followups.js"></script>
+  <script src="js/mobile-leads.js"></script>
+  <script src="js/mobile-customers.js"></script>
+  <script src="js/mobile-opportunities.js"></script>
+  <script>
+    // Set current time in status bar
+    document.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('status-time').textContent = h + ':' + m;
+    });
+  </script>
+</body>
+</html>

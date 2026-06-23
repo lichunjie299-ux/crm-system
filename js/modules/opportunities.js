@@ -10,6 +10,183 @@ const Opportunities = {
   DATA_VALIDITY_TYPE: { '有效': 'success', '未生效': 'warning', '已作废': 'danger' },
   STAGE_DURATION: { '需求待确认': 4, '需求确认': 7, '方案认可': 7, '确定合作': 5, '合同签约': 3, '赢单': 0, '输单': 0 },
 
+  // 产品版本映射：每个解决方案对应的可选版本
+  PRODUCT_EDITIONS: {
+    '微商城': ['基础版', '标准版', '专业版', '豪华版', '旗舰版'],
+    '智慧零售': ['基础版', '标准版', '专业版', '旗舰版'],
+    '智慧购百': ['标准版', '专业版', '旗舰版'],
+    '智慧商超': ['标准版', '专业版', '旗舰版'],
+    '智慧生鲜': ['标准版', '专业版'],
+    '批发商城': ['标准版', '专业版', '豪华版'],
+    '本地生活': ['标准版', '专业版', '旗舰版'],
+    '视频号营销助手': ['基础版', '专业版'],
+    '智慧零售宠物行业': ['标准版', '专业版'],
+    '智慧门店': ['标准版', '专业版', '旗舰版'],
+    '微盟星启': ['标准版', '专业版', '旗舰版'],
+    '智慧美业': ['标准版', '专业版', '豪华版'],
+    '智慧服务': ['标准版', '专业版', '企业版'],
+    '企微助手': ['基础版', '标准版', '专业版'],
+    '企微小助手': ['标准版', '专业版'],
+  },
+
+  // 获取产品展示名（含版本）
+  _getProductDisplayName(p) {
+    return p.edition ? p.product + '-' + p.edition : p.product;
+  },
+
+  // 智能推荐底座缓存（按商机ID存储，不修改商机字段）
+  _smartRecCache: new Map(),
+
+  // 获取智能推荐产品列表（优先从缓存读取）
+  _getSmartRecProducts(item) {
+    if (this._smartRecCache.has(item.id)) {
+      return this._smartRecCache.get(item.id);
+    }
+    // 首次打开侧边栏时，从商机意向产品初始化缓存
+    const products = Array.isArray(item.intendedProducts) ? item.intendedProducts : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
+    this._smartRecCache.set(item.id, products);
+    return products;
+  },
+
+  // 获取完整的智能推荐数据（含底座、理由、话术、竞对策略、案例）
+  _getSmartRecData(item) {
+    const cacheKey = 'smartRecFull_' + item.id;
+    if (this._smartRecCache.has(cacheKey)) {
+      return this._smartRecCache.get(cacheKey);
+    }
+    const products = this._getSmartRecProducts(item);
+    const productNames = products.map(p => p.product).filter(Boolean);
+
+    // 生成推荐理由
+    const reasons = {
+      '微商城': '该客户有线上商城需求，微商城可快速搭建品牌独立商城，支持多端覆盖',
+      '智慧零售': '客户存在全渠道零售场景，智慧零售提供线上线下融合解决方案',
+      '智慧购百': '客户业态为购物百货，智慧购百可提升坪效及会员粘性',
+      '智慧商超': '客户经营商超业态，智慧商超覆盖进销存全链路管理',
+      '智慧生鲜': '生鲜品类需精准库存管理，智慧生鲜支持批次追踪和效期预警',
+      '批发商城': '客户有B2B批发业务需求，批发商城支持多级经销商管理',
+      '本地生活': '客户需要本地化运营能力，本地生活覆盖社区周边商圈',
+      '视频号营销助手': '客户寻求视频号流量变现，视频号营销助手打通直播带货闭环',
+      '智慧零售宠物行业': '宠物行业垂直解决方案，覆盖活体销售到洗护服务的全流程',
+      '智慧门店': '门店数字化升级需求，智慧门店提供智能收银与会员营销',
+      '微盟星启': '初创及成长型企业首选，微盟星启提供轻量级数字化工具',
+      '智慧美业': '美业垂直场景，智慧美业支持预约管理及会员精细化运营',
+      '智慧服务': '服务型行业需求，智慧服务覆盖工单管理与服务履约',
+      '企微助手': '客户使用企微进行客户运营，企微助手增强SCRM能力',
+      '企微小助手': '中小型企业企微运营轻量方案，低成本快速上手',
+    };
+
+    const baseInfo = products.map(p => ({
+      name: this._getProductDisplayName(p),
+      reason: reasons[p.product] || '该产品可满足客户当前业务场景需求',
+    }));
+
+    // 生成销售话术和竞对策略（基于客户行业和产品）
+    const customer = Store.getById('customers', item.customerId);
+    const industry = customer ? (customer.industry || '未知行业') : '未知行业';
+    const primaryProduct = productNames[0] || '智慧零售';
+
+    const salesScripts = [
+      '核心价值：' + (reasons[primaryProduct] || '为客户提供行业领先的数字化解决方案') + '，帮助客户实现业绩增长',
+      '痛点切入：针对' + industry + '行业普遍存在的获客难、转化低、复购弱等问题，提供端到端的解决方案',
+      '差异化：我司产品在数据打通、多端协同方面具有明显优势，支持私有化部署保障数据安全',
+    ];
+
+    const competitorStrategies = [
+      { competitor: '有赞', strategy: '强调微盟在智慧零售全链路能力上的覆盖优势，特别是线上线下打通能力' },
+      { competitor: '微店', strategy: '突出企业级服务能力，微盟提供更完善的售后支持和定制化服务' },
+      { competitor: '有竞品-凡科', strategy: '对比功能完整度和行业解决方案深度，微盟更专注零售行业' },
+      { competitor: '小鹅通', strategy: '强调CRM+商城一体化的优势，不仅仅是知识付费工具' },
+    ];
+
+    // 生成优秀案例
+    const caseStudies = [
+      {
+        title: '林清轩·智慧零售转型',
+        desc: '借助智慧零售+微商城组合，实现线上线下一体化运营，会员复购率提升45%',
+        result: '年GMV增长300%',
+      },
+      {
+        title: '联想来酷·全渠道数字化',
+        desc: '通过智慧门店+企微助手，实现门店智能化和会员精细化管理',
+        result: '客户留存率提升35%',
+      },
+      {
+        title: '来伊份·私域生态建设',
+        desc: '微商城+企微助手组合方案，打通小程序、社群、直播多渠道',
+        result: '私域GMV占比达28%',
+      },
+    ];
+
+    const data = { baseInfo, salesScripts, competitorStrategies, caseStudies };
+    this._smartRecCache.set(cacheKey, data);
+    return data;
+  },
+
+  // 构建智能推荐模块 HTML - 紧凑型子标签切换
+  _buildSmartRecSection(item) {
+    const data = this._getSmartRecData(item);
+    const { baseInfo, salesScripts, competitorStrategies, caseStudies } = data;
+
+    const baseHtml = baseInfo.map(b => `
+      <div style="padding:6px 0;border-bottom:1px solid var(--border-light)">
+        <div style="font-weight:600;font-size:12px;color:var(--primary)">${Helpers.escapeHtml(b.name)}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.4">${Helpers.escapeHtml(b.reason)}</div>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text-muted);padding:8px 0">暂无推荐底座</div>';
+
+    const scriptHtml = salesScripts.map(s => `
+      <div style="padding:5px 0;font-size:11px;color:var(--text-secondary);line-height:1.4;border-bottom:1px solid var(--border-light)">${Helpers.escapeHtml(s)}</div>
+    `).join('');
+
+    const competitorHtml = competitorStrategies.map(c => `
+      <div style="display:flex;gap:6px;padding:6px 0;border-bottom:1px solid var(--border-light)">
+        <span style="flex-shrink:0;padding:1px 6px;background:var(--gray-100);border-radius:3px;font-size:10px;font-weight:600;color:var(--text-primary);height:fit-content">${Helpers.escapeHtml(c.competitor)}</span>
+        <span style="font-size:11px;color:var(--text-secondary);line-height:1.4">${Helpers.escapeHtml(c.strategy)}</span>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text-muted);padding:8px 0">暂无竞对策略</div>';
+
+    const caseHtml = caseStudies.map(cs => `
+      <div style="padding:6px 0;border-bottom:1px solid var(--border-light)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-weight:600;font-size:12px;color:var(--text)">${Helpers.escapeHtml(cs.title)}</span>
+          <span style="padding:1px 6px;background:var(--success-light,#d1fae5);border-radius:3px;font-size:10px;color:var(--success,#065f46);font-weight:600;flex-shrink:0">${Helpers.escapeHtml(cs.result)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.4">${Helpers.escapeHtml(cs.desc)}</div>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text-muted);padding:8px 0">暂无案例</div>';
+
+    const oppId = item.id;
+
+    return `
+      <div class="opp-sidebar-section">
+        <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 智能推荐</div>
+
+        <!-- 子标签栏 -->
+        <div style="display:flex;gap:2px;background:var(--gray-100,#f3f4f6);border-radius:6px;padding:2px;margin-bottom:8px">
+          <span class="smart-rec-tab" data-opp="${oppId}" data-tab="base" style="flex:1;text-align:center;padding:4px 0;font-size:11px;font-weight:500;border-radius:5px;cursor:pointer;background:#fff;color:var(--primary);box-shadow:0 1px 2px rgba(0,0,0,0.06)">推荐底座</span>
+          <span class="smart-rec-tab" data-opp="${oppId}" data-tab="script" style="flex:1;text-align:center;padding:4px 0;font-size:11px;font-weight:500;border-radius:5px;cursor:pointer;color:var(--text-secondary)">销售话术</span>
+          <span class="smart-rec-tab" data-opp="${oppId}" data-tab="competitor" style="flex:1;text-align:center;padding:4px 0;font-size:11px;font-weight:500;border-radius:5px;cursor:pointer;color:var(--text-secondary)">竞对策略</span>
+          <span class="smart-rec-tab" data-opp="${oppId}" data-tab="case" style="flex:1;text-align:center;padding:4px 0;font-size:11px;font-weight:500;border-radius:5px;cursor:pointer;color:var(--text-secondary)">优秀案例</span>
+        </div>
+
+        <!-- Tab 内容 -->
+        <div class="smart-rec-content" data-opp="${oppId}" data-tab="base">
+          ${baseHtml}
+        </div>
+        <div class="smart-rec-content" data-opp="${oppId}" data-tab="script" style="display:none">
+          ${scriptHtml}
+        </div>
+        <div class="smart-rec-content" data-opp="${oppId}" data-tab="competitor" style="display:none">
+          ${competitorHtml}
+        </div>
+        <div class="smart-rec-content" data-opp="${oppId}" data-tab="case" style="display:none">
+          ${caseHtml}
+        </div>
+      </div>
+    `;
+  },
+
   FIELDS: [
     { key: 'name', label: '商机名称', type: 'text', required: true, placeholder: '如：XX公司ERP项目' },
     { key: 'customerId', label: '客户名称', type: 'select', required: true, options: [] },
@@ -92,7 +269,7 @@ const Opportunities = {
     const contactIcon = '<svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
     if (contacts.length > 0) {
       const contactListHtml = contacts.map(c => {
-        const primaryBadge = c.isPrimary === true || c.isPrimary === 'true' ? '<span class="badge badge-primary" style="margin-left:4px;font-size:10px">主要</span>' : '';
+        const primaryBadge = c.isPrimary === true || c.isPrimary === 'true' ? '<span class="badge badge-primary" style="margin-left:4px;font-size:10px">决策人</span>' : '';
         return `<div class="opp-contact-item">
           <div class="opp-contact-name">${Helpers.escapeHtml(c.name)}${primaryBadge}</div>
           <div class="opp-contact-detail">
@@ -167,7 +344,7 @@ const Opportunities = {
             ${Components.Badge(item.stage, this.STAGE_TYPE[item.stage] || 'gray')}
             ${Components.Badge(item.dataValidity || '未生效', this.DATA_VALIDITY_TYPE[item.dataValidity || '未生效'] || 'gray')}
             ${overdueHtml}
-            <span style="font-size:var(--text-lg);font-weight:700;color:var(--primary)">${Helpers.formatMoney(item.amount)}</span>
+            <span style="margin-left:8px;font-weight:700;color:var(--primary)">${Helpers.formatMoney(item.amount)}</span>
           </div>
         </div>
         <button class="opp-sidebar-close" id="opp-sidebar-close" title="关闭">
@@ -198,7 +375,7 @@ const Opportunities = {
               <span class="opp-info-label">意向产品</span>
               <span class="opp-info-value">${(() => {
                 const products = Array.isArray(item.intendedProducts) ? item.intendedProducts : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
-                return products.length > 0 ? products.map(p => `<span style="display:block;line-height:1.6">${Helpers.escapeHtml(p.product)}</span>`).join('') : '-';
+                return products.length > 0 ? products.map(p => `<span style="display:block;line-height:1.6">${Helpers.escapeHtml(Opportunities._getProductDisplayName(p))} <span style="color:var(--text-secondary);font-weight:400">${Helpers.formatMoney(p.amount)}</span></span>`).join('') : '-';
               })()}</span>
             </div>
             <div class="opp-info-item">
@@ -232,6 +409,9 @@ const Opportunities = {
 
         <!-- 跟进记录 -->
         ${followupHtml}
+
+        <!-- 智能推荐 -->
+        ${Opportunities._buildSmartRecSection(item)}
       </div>
 
       <div class="opp-sidebar-footer">
@@ -262,6 +442,27 @@ const Opportunities = {
     this._sidebarEl.querySelector('#sidebar-btn-delete')?.addEventListener('click', () => {
       this.closeSidebar();
       this.handleDelete(id);
+    });
+
+    // 智能推荐子标签切换
+    this._sidebarEl.querySelectorAll('.smart-rec-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetTab = tab.dataset.tab;
+        // 切换标签样式
+        tab.parentElement.querySelectorAll('.smart-rec-tab').forEach(t => {
+          t.style.background = '';
+          t.style.color = 'var(--text-secondary)';
+          t.style.boxShadow = 'none';
+        });
+        tab.style.background = '#fff';
+        tab.style.color = 'var(--primary)';
+        tab.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
+        // 切换内容
+        tab.closest('.opp-sidebar-section')?.querySelectorAll('.smart-rec-content').forEach(c => {
+          c.style.display = c.dataset.tab === targetTab ? '' : 'none';
+        });
+      });
     });
 
     // 阶段步骤点击（仅活跃商机）
@@ -349,18 +550,76 @@ const Opportunities = {
 
     // 构建工具栏按钮（无）
 
-    // 筛选字段
+    // 筛选字段（默认展示4项，其余折叠）
     const filterFields = [
-      { key: 'name', label: '商机名称', type: 'text', placeholder: '请输入商机名称' },
-      { key: 'salesOwner', label: '销售归属', type: 'text', placeholder: '请输入销售姓名', customFilter: (item, val) => {
+      // --- 默认展示 ---
+      { key: 'keyword', label: '商机/客户名称', type: 'text', placeholder: '请输入商机名称或客户名称', customFilter: (item, val) => {
+        if (!val) return true;
+        const term = val.toLowerCase();
+        // 匹配商机名称
+        if (item.name && item.name.toLowerCase().includes(term)) return true;
+        // 匹配客户名称
+        const customer = Store.getById('customers', item.customerId);
+        if (customer && customer.name && customer.name.toLowerCase().includes(term)) return true;
+        return false;
+      }},
+      { key: 'salesOwner', label: '销售归属人', type: 'text', placeholder: '请输入销售姓名', customFilter: (item, val) => {
         if (!val) return true;
         const customer = Store.getById('customers', item.customerId);
         return customer && customer.assignee && customer.assignee.toLowerCase().includes(val.toLowerCase());
       }},
-      { key: 'purchaseType', label: '采购类型', type: 'select', placeholder: '请选择', options: ['新开', '续约', '增购', '增值'] },
       { key: 'stage', label: '商机阶段', type: 'select', placeholder: '请选择', options: ['需求待确认', '需求确认', '方案认可', '确定合作', '合同签约', '赢单', '输单'] },
-      { key: 'expectedCloseDate', label: '预计时间', type: 'dateRange', periodOptions: ['本月', '下月'] },
-      { key: 'createdAt', label: '创建时间', type: 'dateRange', periodOptions: ['本月', '下月'] },
+      { key: 'intendedProduct', label: '意向产品', type: 'text', placeholder: '请输入产品名称', customFilter: (item, val) => {
+        if (!val) return true;
+        const products = Array.isArray(item.intendedProducts) ? item.intendedProducts : [];
+        return products.some(p => p.product && p.product.toLowerCase().includes(val.toLowerCase()));
+      }},
+      // 时间维度（合并为一个筛选项）
+      { key: 'timeRange', label: '时间范围', type: 'timeDimension',
+        dimOptions: [
+          { key: 'expectedCloseDate', label: '预计成交时间' },
+          { key: 'stageChangedAt', label: '阶段变更时间' },
+          { key: 'createdAt', label: '创建时间' },
+          { key: 'lastFollowupAt', label: '最近跟进时间' },
+          { key: 'nextFollowupAt', label: '下次跟进时间' },
+        ],
+        periodOptions: ['本月', '下月'],
+        placeholder: '全部'
+      },
+      // --- 更多筛选 ---
+      { key: 'assignee', label: 'IS归属人', type: 'text', placeholder: '请输入归属人' },
+      { key: 'source', label: '商机来源', type: 'select', placeholder: '请选择', options: ['推广', '自拓', '展会', '转介绍', '网站表单', '电话咨询'] },
+      { key: 'purchaseType', label: '采购类型', type: 'select', placeholder: '请选择', options: ['新开', '续约', '增购', '增值'] },
+      { key: 'lostReason', label: '输单原因', type: 'text', placeholder: '请输入输单原因' },
+      { key: 'amount', label: '预计成交金额', type: 'text', placeholder: '最低金额', customFilter: (item, val) => {
+        if (!val) return true;
+        const minAmount = parseFloat(val);
+        if (isNaN(minAmount)) return true;
+        return item.amount >= minAmount;
+      }},
+      { key: 'oppSource', label: '商机类型', type: 'select', placeholder: '请选择', options: ['派单商机', '自建商机'] },
+      { key: 'prevStage', label: '上一阶段', type: 'text', placeholder: '请输入阶段名称' },
+      { key: 'stageStayDays', label: '阶段停留时间', type: 'text', placeholder: '最低天数', customFilter: (item, val) => {
+        if (!val) return true;
+        const minDays = parseInt(val, 10);
+        if (isNaN(minDays)) return true;
+        let stageChangedAt;
+        if (item.stageChangedAt) { stageChangedAt = new Date(item.stageChangedAt); }
+        else { stageChangedAt = new Date(item.createdAt); }
+        const days = Math.floor((Date.now() - stageChangedAt.getTime()) / (1000 * 60 * 60 * 24));
+        return days >= minDays;
+      }},
+      { key: 'stageOverdue', label: '阶段停留是否超期', type: 'select', placeholder: '请选择', options: ['正常', '超期'], customFilter: (item, val) => {
+        if (!val) return true;
+        if (item.stage === '赢单' || item.stage === '输单') return val === '正常';
+        let stageChangedAt;
+        if (item.stageChangedAt) { stageChangedAt = new Date(item.stageChangedAt); }
+        else { stageChangedAt = new Date(item.createdAt); }
+        const days = Math.floor((Date.now() - stageChangedAt.getTime()) / (1000 * 60 * 60 * 24));
+        const expectedDuration = Opportunities.STAGE_DURATION[item.stage] || 7;
+        const isOverdue = days > expectedDuration;
+        return val === '超期' ? isOverdue : !isOverdue;
+      }},
     ];
 
     // 初始数据
@@ -418,6 +677,7 @@ const Opportunities = {
       ],
       data: data,
       filterFields,
+      defaultVisibleFilters: 5,
       toolbarSlot: briefSlot,
       actions: {
         onFollowUp: (id) => this.handleFollowUp(id),
@@ -435,20 +695,20 @@ const Opportunities = {
         <div class="page-header-left">
           <div class="page-title-wrap">
             <h2 class="page-title">商机管理</h2>
-            <span class="opp-rule-trigger" id="opp-rule-trigger">${UI.icons.info}</span>
-            <div class="opp-rule-popover" id="opp-rule-popover" style="display:none">
-              <h4>商机规则说明</h4>
-              <ul>
-                <li><strong>10%、30%阶段</strong>：每7天跟进一次，否则将掉保</li>
-                <li><strong>50%阶段</strong>：至少有一次拜访记录，且每7天跟进一次，否则将掉保</li>
-                <li><strong>70%、90%、100%阶段</strong>：至少有一次拜访记录，且管理层审核后不掉保，无需重复审批</li>
-              </ul>
-            </div>
           </div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary" id="btn-add"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 新建商机</button>
           <button class="btn btn-secondary" id="btn-export"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 导出</button>
+        </div>
+      </div>
+      <div class="stats-card" id="opp-rules-trigger" style="cursor:pointer;position:relative;-webkit-user-select:none;user-select:none">
+        <svg class="stats-card-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>商机规则 <strong style="color:#1890FF">点击此处查看</strong></span>
+        <div id="opp-rules-popup" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,0.15);padding:12px 16px;margin-top:4px;font-size:13px;color:#333;line-height:1.8">
+          <div>10%、30%阶段：每7天跟进一次，否则客户和商机同时掉保</div>
+          <div>50%阶段：至少有一次拜访记录，且每7天跟进一次，否则客户和商机同时掉保</div>
+          <div>70%、90%、100%阶段：至少有一次拜访记录，且管理层审核后不掉保</div>
         </div>
       </div>
       <div id="table-container"></div>`;
@@ -463,19 +723,19 @@ const Opportunities = {
     });
 
     // 商机规则提示弹窗
-    const ruleTrigger = el.querySelector('#opp-rule-trigger');
-    const rulePopover = el.querySelector('#opp-rule-popover');
+    const ruleTrigger = el.querySelector('#opp-rules-trigger');
+    const rulePopover = el.querySelector('#opp-rules-popup');
     if (ruleTrigger && rulePopover) {
       ruleTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isHidden = rulePopover.style.display === 'none';
-        rulePopover.style.display = isHidden ? 'block' : 'none';
+        const isVisible = rulePopover.style.display === 'block';
+        rulePopover.style.display = isVisible ? 'none' : 'block';
       });
       document.addEventListener('click', (e) => {
         if (!ruleTrigger.contains(e.target) && !rulePopover.contains(e.target)) {
           rulePopover.style.display = 'none';
         }
-      });
+      }, { once: false });
     }
 
     el.addEventListener('click', (e) => {
@@ -586,7 +846,7 @@ const Opportunities = {
           { key: 'stage', label: '当前阶段', render: v => Components.Badge(v, Opportunities.STAGE_TYPE[v] || 'gray') },
           { key: 'intendedProducts', label: '意向产品', render: (v, item) => {
             const products = Array.isArray(v) ? v : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
-            return products.length > 0 ? products.map(p => `${Helpers.escapeHtml(p.product)}（${Helpers.formatMoney(p.amount)}）`).join('<br>') : '-';
+            return products.length > 0 ? products.map(p => `${Helpers.escapeHtml(Opportunities._getProductDisplayName(p))}（${Helpers.formatMoney(p.amount)}）`).join('<br>') : '-';
           }},
           { key: 'amount', label: '预估总额', render: v => Helpers.formatMoney(v) },
           { key: 'probability', label: '成交概率', render: v => v ? `${v}%` : '-' },
@@ -941,6 +1201,41 @@ const Opportunities = {
         this.renderList();
       }
     });
+  },
+
+  _handleSmartRematch(id) {
+    const item = Store.getById(this.COLLECTION, id);
+    if (!item) return;
+
+    const allProducts = ['微商城', '智慧零售', '智慧购百', '智慧商超', '智慧生鲜', '批发商城', '本地生活', '视频号营销助手', '智慧零售宠物行业', '智慧门店', '微盟星启', '智慧美业', '智慧服务', '企微助手', '企微小助手'];
+
+    // 基于当前商机的已有产品，智能推荐互补产品组合
+    const currentProductNames = (item.intendedProducts || []).map(p => p.product);
+    const available = allProducts.filter(p => !currentProductNames.includes(p));
+    if (available.length < 2) {
+      UI.toast('已覆盖全部可推荐产品，无需重新匹配', 'info');
+      return;
+    }
+
+    // 随机选择 1-2 个互补产品，并带上随机版本
+    const getRandomEdition = (productName) => {
+      const editions = Opportunities.PRODUCT_EDITIONS[productName];
+      return editions ? editions[Math.floor(Math.random() * editions.length)] : '';
+    };
+
+    const shuffled = available.sort(() => Math.random() - 0.5);
+    const newProductNames = shuffled.slice(0, 1 + Math.floor(Math.random() * Math.min(2, shuffled.length)));
+
+    const newProducts = newProductNames.map(p => ({ product: p, edition: getRandomEdition(p), amount: 0 }));
+    const displayNames = newProducts.map(p => p.product + '-' + p.edition);
+
+    // 合并到缓存（不修改商机 intendedProducts 字段）
+    const currentRecProducts = Opportunities._getSmartRecProducts(item);
+    const updatedRecProducts = [...currentRecProducts, ...newProducts];
+    Opportunities._smartRecCache.set(id, updatedRecProducts);
+
+    UI.toast('智能推荐底座已更新，新增 ' + displayNames.join('、'), 'success', 3000);
+    this.openSidebar(id);
   },
 
   init() {

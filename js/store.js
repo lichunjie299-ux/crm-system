@@ -97,7 +97,7 @@ const Store = {
 
   // 导出全部数据
   exportAll() {
-    const collections = ['leads', 'customers', 'contacts', 'opportunities', 'orders', 'followups', 'products', 'settings'];
+    const collections = ['leads', 'customers', 'contacts', 'opportunities', 'orders', 'followups', 'products', 'settings', 'approvals', 'fieldVisits', 'preSales', 'contracts', 'cartItems'];
     const data = {};
     collections.forEach(c => {
       const raw = localStorage.getItem(this._prefix + c);
@@ -122,7 +122,7 @@ const Store = {
       localStorage.removeItem(this._prefix + collection);
       EventBus.emit(`data:changed:${collection}`, { action: 'clear' });
     } else {
-      const collections = ['leads', 'customers', 'contacts', 'opportunities', 'orders', 'followups', 'products'];
+      const collections = ['leads', 'customers', 'contacts', 'opportunities', 'orders', 'followups', 'products', 'approvals', 'fieldVisits', 'preSales', 'contracts'];
       collections.forEach(c => {
         this._cache[c] = [];
         localStorage.removeItem(this._prefix + c);

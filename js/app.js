@@ -20,6 +20,9 @@ const App = {
     Contracts.init();
     Rules.init();
     FollowUps.init();
+    Approvals.init();
+    FieldVisits.init();
+    PreSales.init();
 
     // 注册设置/导出路由
     Router.register('#/settings', () => this.renderSettings());
@@ -27,11 +30,19 @@ const App = {
     // 绑定侧边栏导航
     this.bindNavigation();
 
+    // 绑定侧边栏折叠分组
+    this.bindNavGroups();
+
     // 绑定全局搜索
     this.bindGlobalSearch();
 
     // 绑定移动端侧边栏
     this.bindMobileSidebar();
+
+    // 路由变化时更新导航高亮（需在 Router.start 之前注册）
+    EventBus.on('route:changed', (route) => {
+      this.updateActiveNav(route.hash);
+    });
 
     // 启动路由
     Router.start();
@@ -39,16 +50,11 @@ const App = {
     // 检查公海掉保规则
     this.checkPoolRules();
 
-    // 路由变化时更新导航高亮
-    EventBus.on('route:changed', (route) => {
-      this.updateActiveNav(route.hash);
-    });
-
     console.log('CRM 系统已启动');
   },
 
   bindNavigation() {
-    document.querySelectorAll('.nav-item[data-route]').forEach(item => {
+    document.querySelectorAll('.nav-item[data-route], .nav-sub-item[data-route]').forEach(item => {
       item.addEventListener('click', () => {
         const route = item.dataset.route;
         Router.navigate(route);
@@ -59,11 +65,29 @@ const App = {
   },
 
   updateActiveNav(hash) {
-    const module = hash.split('/')[1] || 'dashboard';
     document.querySelectorAll('.nav-item').forEach(item => {
       const route = item.dataset.route || '';
-      const routeModule = route.split('/')[1] || '';
-      item.classList.toggle('active', routeModule === module);
+      const isActive = hash === route || hash.startsWith(route + '/') || hash.startsWith(route + '?');
+      item.classList.toggle('active', isActive);
+    });
+
+    // 处理子菜单项高亮
+    document.querySelectorAll('.nav-sub-item').forEach(item => {
+      const route = item.dataset.route || '';
+      const isActive = hash === route || hash.startsWith(route + '/') || hash.startsWith(route + '?');
+      item.classList.toggle('active', isActive);
+    });
+
+    // 处理子菜单高亮：如有子项激活，展开父分组并高亮父 toggle
+    document.querySelectorAll('.nav-group').forEach(group => {
+      const hasActiveSub = group.querySelector('.nav-sub-item.active');
+      const toggle = group.querySelector('.nav-group-toggle');
+      if (hasActiveSub) {
+        group.classList.add('expanded');
+        if (toggle) toggle.classList.add('active');
+      } else {
+        if (toggle) toggle.classList.remove('active');
+      }
     });
   },
 
@@ -184,6 +208,18 @@ const App = {
     }
   },
 
+  // 侧边栏折叠分组展开/收起
+  bindNavGroups() {
+    document.querySelectorAll('.nav-group-toggle').forEach(item => {
+      item.addEventListener('click', () => {
+        const group = item.closest('.nav-group');
+        if (group) {
+          group.classList.toggle('expanded');
+        }
+      });
+    });
+  },
+
   // 公海掉保规则检查，返回新增掉保数量
   checkPoolRules() {
     let count = 0;
@@ -228,7 +264,7 @@ const App = {
       const daysSinceCreation = Math.floor((now - created) / DAY);
 
       // 检查是否有赢单订单
-      const hasWonOrder = Store.query('orders', o => o.customerId === customer.id).some(o => o.status === '已完成' || o.status === '执行中');
+      const hasWonOrder = Store.query('orders', o => o.customerId === customer.id).some(o => o.status === '已完成' || o.status === '已付款');
 
       // 检查最近7天是否有跟进（包含客户及商机的跟进记录）
       const sevenDaysAgo = now - 7 * DAY;
