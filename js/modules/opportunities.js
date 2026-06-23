@@ -552,13 +552,36 @@ const Opportunities = {
         if (amt >= 10000) return '¥' + (amt / 10000).toFixed(1) + 'W';
         return '¥' + Number(amt).toLocaleString('zh-CN', { maximumFractionDigits: 0 });
       };
-      let html = `<span class="opp-brief-pill opp-brief-pill-total">整体（${stats.total.count}，${fmtAmt(stats.total.amount)}）</span>`;
+      const fmtCount = (n) => n + '个';
+
+      // 第一行：阶段标签
+      let row1 = '<div style="display:flex;gap:0;font-size:11px;color:var(--text-secondary);margin-bottom:1px">';
+      row1 += '<span style="flex:1;min-width:54px">整体</span>';
+      this.STAGES.forEach(stage => {
+        row1 += `<span style="flex:1;min-width:54px">${stage}</span>`;
+      });
+      row1 += '</div>';
+
+      // 第二行：商机量
+      let row2 = '<div style="display:flex;gap:0;font-size:14px;font-weight:700;margin-bottom:1px">';
+      row2 += `<span style="flex:1;min-width:54px;color:#1d1d1f">${fmtCount(stats.total.count)}</span>`;
       this.STAGES.forEach(stage => {
         const s = stats[stage];
-        const type = this.STAGE_TYPE[stage] || 'gray';
-        html += `<span class="opp-brief-pill opp-brief-pill-${type}">${stage}（${s.count}，${fmtAmt(s.amount)}）</span>`;
+        const color = { '需求待确认':'#1677ff', '需求确认':'#5b8def', '方案认可':'#faad14', '确定合作':'#faad14', '合同签约':'#5b8def', '赢单':'#52c41a', '输单':'#ff4d4f' }[stage] || '#6b7280';
+        row2 += `<span style="flex:1;min-width:54px;color:${color}">${fmtCount(s.count)}</span>`;
       });
-      return html;
+      row2 += '</div>';
+
+      // 第三行：商机金额
+      let row3 = '<div style="display:flex;gap:0;font-size:12px;color:var(--text-muted)">';
+      row3 += `<span style="flex:1;min-width:54px">${fmtAmt(stats.total.amount)}</span>`;
+      this.STAGES.forEach(stage => {
+        const s = stats[stage];
+        row3 += `<span style="flex:1;min-width:54px">${fmtAmt(s.amount)}</span>`;
+      });
+      row3 += '</div>';
+
+      return `<div style="background:var(--gray-50);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:8px 10px">${row1}${row2}${row3}</div>`;
     };
 
     // 构建工具栏按钮（无）
@@ -639,7 +662,7 @@ const Opportunities = {
     const initialStats = computeBriefStats(data);
 
     // 商机简报 HTML（作为 DataTable 的 toolbarSlot）
-    const briefSlot = `<div class="opp-brief"><div class="opp-brief-stats" id="brief-stats">${renderBriefStatsHtml(initialStats)}</div></div>`;
+    const briefSlot = `<div id="brief-stats">${renderBriefStatsHtml(initialStats)}</div>`;
 
     const table = Components.DataTable({
       columns: [
