@@ -573,7 +573,7 @@ const Opportunities = {
       row2 += '</div>';
 
       // 第三行：商机金额
-      let row3 = '<div style="display:flex;gap:0;font-size:12px;color:var(--text-muted)">';
+      let row3 = '<div style="display:flex;gap:0;font-size:12px;color:var(--text-primary)">';
       row3 += `<span style="flex:1;min-width:54px">${fmtAmt(stats.total.amount)}</span>`;
       this.STAGES.forEach(stage => {
         const s = stats[stage];
