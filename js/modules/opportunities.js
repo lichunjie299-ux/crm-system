@@ -162,7 +162,8 @@ const Opportunities = {
 
     return `
       <div class="opp-sidebar-section">
-        <div class="opp-sidebar-section-title">
+        <div class="opp-sidebar-section-title" style="display:flex;align-items:center">
+          <span style="display:flex;align-items:center">
           <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           智能推荐
           <span style="display:inline-flex;align-items:center;margin-left:4px;font-size:9px;color:#fff;background:var(--primary);padding:0 5px;border-radius:8px;font-weight:400;cursor:pointer;position:relative;line-height:16px"
@@ -172,6 +173,10 @@ const Opportunities = {
               根据客户需求${Helpers.escapeHtml(item.customerNeed || '-')}、行业${Helpers.escapeHtml(industry)}匹配天枢内的推荐底座、销售话术、竞对策略、优秀案例
             </div>
           </span>
+          </span>
+          <button class="btn btn-text btn-sm rematch-btn" data-opp-id="${oppId}" style="margin-left:auto;font-size:11px;padding:2px 8px;height:auto;line-height:1.5;color:var(--primary);flex-shrink:0" title="重新匹配推荐内容">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>重新匹配
+          </button>
         </div>
 
         <!-- 子标签栏 -->
@@ -461,7 +466,6 @@ const Opportunities = {
       tab.addEventListener('click', (e) => {
         e.stopPropagation();
         const targetTab = tab.dataset.tab;
-        // 切换标签样式
         tab.parentElement.querySelectorAll('.smart-rec-tab').forEach(t => {
           t.style.background = '';
           t.style.color = 'var(--text-secondary)';
@@ -470,12 +474,28 @@ const Opportunities = {
         tab.style.background = '#fff';
         tab.style.color = 'var(--primary)';
         tab.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
-        // 切换内容
         tab.closest('.opp-sidebar-section')?.querySelectorAll('.smart-rec-content').forEach(c => {
           c.style.display = c.dataset.tab === targetTab ? '' : 'none';
         });
       });
     });
+
+    // 重新匹配按钮
+    const rematchBtn = this._sidebarEl.querySelector('.rematch-btn');
+    if (rematchBtn) {
+      rematchBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const oppId = e.currentTarget.dataset.oppId;
+        const item = Store.getById(this.COLLECTION, oppId);
+        if (!item) return;
+        this._smartRecCache.delete(oppId);
+        this._smartRecCache.delete('smartRecFull_' + oppId);
+        const section = e.currentTarget.closest('.opp-sidebar-section');
+        if (section) {
+          section.outerHTML = Opportunities._buildSmartRecSection(item);
+        }
+      });
+    }
 
     // 阶段步骤点击（仅活跃商机）
     if (isActive) {
