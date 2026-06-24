@@ -165,7 +165,7 @@ const Opportunities = {
         <div class="opp-sidebar-section-title">
           <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           智能推荐
-          <span style="display:inline-flex;align-items:center;margin-left:4px;font-size:9px;color:var(--primary);background:var(--primary-light);padding:0 5px;border-radius:8px;font-weight:400;cursor:pointer;position:relative;line-height:16px"
+          <span style="display:inline-flex;align-items:center;margin-left:4px;font-size:9px;color:#fff;background:var(--primary);padding:0 5px;border-radius:8px;font-weight:400;cursor:pointer;position:relative;line-height:16px"
                 onclick="this.querySelector('.tianshu-tip').style.display=this.querySelector('.tianshu-tip').style.display==='block'?'none':'block';event.stopPropagation()">
             天枢
             <div class="tianshu-tip" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#1f2937;color:#fff;font-size:11px;padding:10px 14px;border-radius:6px;max-width:320px;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.15);line-height:1.7;pointer-events:none;white-space:normal;text-align:left">
