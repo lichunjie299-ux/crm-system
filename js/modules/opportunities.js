@@ -162,8 +162,7 @@ const Opportunities = {
 
     return `
       <div class="opp-sidebar-section">
-        <div class="opp-sidebar-section-title" style="display:flex;align-items:center">
-          <span style="display:flex;align-items:center;flex-shrink:0">
+        <div class="opp-sidebar-section-title">
           <svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           智能推荐
           <span style="display:inline-flex;align-items:center;margin-left:4px;font-size:9px;color:#fff;background:var(--primary);padding:0 5px;border-radius:8px;font-weight:400;cursor:pointer;position:relative;line-height:16px"
@@ -173,10 +172,6 @@ const Opportunities = {
               根据客户需求${Helpers.escapeHtml(item.customerNeed || '-')}、行业${Helpers.escapeHtml(industry)}匹配天枢内的推荐底座、销售话术、竞对策略、优秀案例
             </div>
           </span>
-          </span>
-          <button class="btn btn-text btn-sm rematch-btn" data-opp-id="${oppId}" style="margin-left:auto;font-size:11px;padding:2px 8px;height:auto;line-height:1.5;color:var(--primary);flex-shrink:0" title="根据最新客户需求和行业重新匹配推荐内容">
-            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:-2px;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>重新匹配
-          </button>
         </div>
 
         <!-- 子标签栏 -->
@@ -296,14 +291,12 @@ const Opportunities = {
         </div>`;
       }).join('');
       contactHtml = `<div class="opp-sidebar-section">
-        <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix">${contactIcon} 联系人信息</div>
+        <div class="opp-sidebar-section-title">${contactIcon} 联系人信息</div>
         <div class="opp-contact-list">${contactListHtml}</div>
       </div>`;
     } else {
       contactHtml = `<div class="opp-sidebar-section">
-        <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix">${contactIcon} 联系人信息</div>
+        <div class="opp-sidebar-section-title">${contactIcon} 联系人信息</div>
         <div class="opp-sidebar-empty">
           <div class="opp-sidebar-empty-icon">👤</div>
           <div class="opp-sidebar-empty-text">暂无联系人信息</div>
@@ -317,8 +310,7 @@ const Opportunities = {
       const stages = this.STAGES.filter(s => s !== '输单');
       const currentIdx = stages.indexOf(item.stage);
       stageBarHtml = `<div class="opp-sidebar-section">
-        <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> 商机阶段</div>
+        <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> 商机阶段</div>
         <div class="stage-pipeline">
           ${stages.map((s, i) => {
             let cls = '';
@@ -342,14 +334,12 @@ const Opportunities = {
         </div>
       `).join('');
       followupHtml = `<div class="opp-sidebar-section">
-        <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 跟进记录 (${followups.length})</div>
+        <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 跟进记录 (${followups.length})</div>
         <div class="timeline">${timelineHtml}</div>
       </div>`;
     } else {
       followupHtml = `<div class="opp-sidebar-section">
-        <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 跟进记录</div>
+        <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 跟进记录</div>
         <div class="opp-sidebar-empty">
           <div class="opp-sidebar-empty-icon">📝</div>
           <div class="opp-sidebar-empty-text">暂无跟进记录，点击"写跟进"添加</div>
@@ -383,8 +373,7 @@ const Opportunities = {
       <div class="opp-sidebar-body">
         <!-- 基本信息 -->
         <div class="opp-sidebar-section">
-          <div class=".opp-sidebar-section-title {display:flex;align-items:center}
-#title-fix"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> 基本信息</div>
+          <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> 基本信息</div>
           <div class="opp-info-grid">
             <div class="opp-info-item">
               <span class="opp-info-label">客户名称</span>
@@ -486,51 +475,6 @@ const Opportunities = {
           c.style.display = c.dataset.tab === targetTab ? '' : 'none';
         });
       });
-    });
-
-    // 重新匹配按钮
-    this._sidebarEl.querySelector('.rematch-btn')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const oppId = e.currentTarget.dataset.oppId;
-      const item = Store.getById(this.COLLECTION, oppId);
-      if (!item) return;
-      // 清除智能推荐缓存
-      this._smartRecCache.delete(oppId);
-      this._smartRecCache.delete('smartRecFull_' + oppId);
-      // 重新渲染智能推荐模块
-      const section = e.currentTarget.closest('.opp-sidebar-section');
-      if (section) {
-        section.outerHTML = Opportunities._buildSmartRecSection(item);
-        // 重新绑定智能推荐子标签切换
-        setTimeout(() => {
-          this._sidebarEl.querySelectorAll('.smart-rec-tab').forEach(t => {
-            t.addEventListener('click', (ev) => {
-              ev.stopPropagation();
-              const tt = t.dataset.tab;
-              t.parentElement.querySelectorAll('.smart-rec-tab').forEach(x => {
-                x.style.background = ''; x.style.color = 'var(--text-secondary)'; x.style.boxShadow = 'none';
-              });
-              t.style.background = '#fff'; t.style.color = 'var(--primary)'; t.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
-              t.closest('.opp-sidebar-section')?.querySelectorAll('.smart-rec-content').forEach(c => {
-                c.style.display = c.dataset.tab === tt ? '' : 'none';
-              });
-            });
-          });
-          // 重新绑定重新匹配按钮
-          const newBtn = this._sidebarEl.querySelector('.rematch-btn');
-          if (newBtn) {
-            newBtn.addEventListener('click', (ev) => {
-              ev.stopPropagation();
-              this._smartRecCache.delete(oppId);
-              this._smartRecCache.delete('smartRecFull_' + oppId);
-              const sec = ev.currentTarget.closest('.opp-sidebar-section');
-              if (sec) {
-                sec.outerHTML = Opportunities._buildSmartRecSection(item);
-              }
-            });
-          }
-        }, 50);
-      }
     });
 
     // 阶段步骤点击（仅活跃商机）
