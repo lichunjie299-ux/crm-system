@@ -327,6 +327,17 @@ const Opportunities = {
           <div class="stage-step ${item.stage === '输单' ? 'current' : ''}" data-sidebar-stage="输单" title="输单 (0%)">输单</div>
         </div>
       </div>`;
+    } else {
+      const loseReason = item.loseReason || item.lostReason || '';
+      stageBarHtml = `<div class="opp-sidebar-section">
+        <div class="opp-sidebar-section-title"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> 商机阶段</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <span class="badge badge-danger" style="font-size:13px;padding:4px 12px">输单</span>
+        </div>
+        <div class="lose-reason" style="margin-top:8px;padding:10px 12px;background:#fff2f0;border:1px solid #ffccc7;border-radius:6px;font-size:13px;color:#333;line-height:1.6">
+          <span style="font-weight:600;color:#cf1322">输单原因：</span>${loseReason ? Helpers.escapeHtml(loseReason) : '未填写'}
+        </div>
+      </div>`;
     }
 
     // 跟进记录
