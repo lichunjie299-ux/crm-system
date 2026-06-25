@@ -227,7 +227,8 @@ const SeedData = {
         stageChangedAt: this._pastDate(stageDays),
         keyAction: isClosed ? '已完成阶段任务' : '跟进客户需求方案',
         keyActionDate: actionDays > 0 ? this._futureDate(actionDays) : this._pastDate(Math.abs(actionDays)),
-        contactId: contactRecords[cIdx]?.id || ''
+        contactId: contactRecords[cIdx]?.id || '',
+        loseReason: stage === '输单' ? '客户选择竞品/微店/客户认为价格太贵' : ''
       });
     }
 
