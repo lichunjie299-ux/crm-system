@@ -324,7 +324,6 @@ const Opportunities = {
             else if (i === currentIdx) cls = 'current';
             return `<div class="stage-step ${cls}" data-sidebar-stage="${s}" title="${s} (${this.STAGE_PROB[s]}%)">${s}</div>`;
           }).join('')}
-          <div class="stage-step ${item.stage === '输单' ? 'current' : ''}" data-sidebar-stage="输单" title="输单 (0%)">输单</div>
         </div>
       </div>`;
     } else {
