@@ -87,7 +87,7 @@ const FollowUps = {
         }},
       ],
       data,
-      searchKeys: ['content'],
+      searchKeys: ['content', 'creator'],
       searchPlaceholder: '搜索跟进内容...',
       sortKey: 'createdAt',
       filterFields: [
