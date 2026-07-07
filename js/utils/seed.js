@@ -489,6 +489,8 @@ const SeedData = {
       d.setDate(d.getDate() - i * 2 - 1);
       d.setHours(9 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 60));
       f.createdAt = d.toISOString();
+      const creators = ['李春洁', '马芙亮', '陈大业'];
+      f.creator = creators[i % 3];
       Store.create('followups', f);
     });
 
