@@ -38,17 +38,35 @@ const Contacts = {
           return `<strong>${Helpers.escapeHtml(v || '')}</strong>${primary}`;
         }},
         { key: 'title', label: '职位', width: '120px' },
-        { key: 'customerId', label: '所属客户', render: (v) => {
-          const cust = Store.getById('customers', v);
-          return cust ? `<span class="cell-link" data-customer="${v}">${Helpers.escapeHtml(cust.name)}</span>` : '-';
-        }},
         { key: 'phone', label: '电话', width: '130px', render: v => v ? `<a href="tel:${v}">${Helpers.escapeHtml(v)}</a>` : '-' },
         { key: 'email', label: '邮箱', width: '180px', render: v => v ? `<a href="mailto:${v}">${Helpers.escapeHtml(v)}</a>` : '-' },
+        { key: 'customerId', label: '所属客户', render: (v) => {
+          const cust = Store.getById('customers', v);
+          return cust ? `<span class="cell-link" data-href="#/customers/view/${v}">${Helpers.escapeHtml(cust.name)}</span>` : '-';
+        }},
+        { key: '_salesOwner', label: '所属销售', width: '80px', render: (v, item) => {
+          const cust = Store.getById('customers', item.customerId);
+          return cust ? (cust.assignee || cust.salesOwner || '-') : '-';
+        }},
         { key: 'createdAt', label: '创建时间', width: '110px', sortable: true, render: v => Helpers.formatDate(v) },
       ],
       data,
       searchKeys: ['name', 'title', 'phone', 'email'],
       searchPlaceholder: '搜索姓名、职位、电话...',
+      filterFields: [
+        { key: 'salesOwner', label: '所属销售', type: 'text', placeholder: '请输入销售姓名', customFilter: (item, val) => {
+          if (!val) return true;
+          const cust = Store.getById('customers', item.customerId);
+          if (!cust) return false;
+          return (cust.assignee || cust.salesOwner || '').toLowerCase().includes(val.toLowerCase());
+        }},
+        { key: 'customerName', label: '所属客户', type: 'text', placeholder: '请输入客户名称', customFilter: (item, val) => {
+          if (!val) return true;
+          const cust = Store.getById('customers', item.customerId);
+          if (!cust) return false;
+          return cust.name.toLowerCase().includes(val.toLowerCase());
+        }},
+      ],
       actions: {
         onEdit: (id) => this.showForm(id),
         onDelete: (id) => this.handleDelete(id),
