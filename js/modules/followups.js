@@ -105,13 +105,10 @@ const FollowUps = {
         }},
         { key: 'createdAt', label: '创建时间', type: 'dateRange', placeholder: '选择日期范围' },
         { key: 'type', label: '联系类型', type: 'select', placeholder: '请选择', options: ['电话', '拜访', '邮件', '微信', '会议', '其他'] },
-        { key: 'relatedType', label: '关联对象', type: 'select', placeholder: '请选择', options: [
-          { value: 'lead', label: '线索' },
-          { value: 'customer', label: '客户' },
-          { value: 'opportunity', label: '商机' },
-        ], customFilter: (item, val) => {
+        { key: 'relatedType', label: '关联对象', type: 'select', placeholder: '请选择', options: ['线索', '客户', '商机'], customFilter: (item, val) => {
           if (!val) return true;
-          return item.relatedType === val;
+          const map = { '线索': 'lead', '客户': 'customer', '商机': 'opportunity' };
+          return item.relatedType === (map[val] || val);
         }},
       ],
     });
