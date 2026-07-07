@@ -9,6 +9,7 @@ const App = {
 
     // 初始化所有模块
     Dashboard.init();
+    OppBoard.init();
     Products.init();
     Leads.init();
     Customers.init();
