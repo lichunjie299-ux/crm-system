@@ -23,9 +23,6 @@ const FollowUps = {
           <h2 class="page-title">跟进记录</h2>
           <p class="page-subtitle">查看所有跟进活动</p>
         </div>
-        <div class="page-header-right">
-          <button class="btn btn-primary" id="btn-add"><svg viewBox="0 0 24 24">${UI.icons.plus}</svg> 新建跟进</button>
-        </div>
       </div>
       <div id="table-container"></div>
     `;
@@ -34,7 +31,7 @@ const FollowUps = {
       columns: [
         { key: 'type', label: '联系类型', width: '90px', render: v => Components.Badge(v, FollowUps.TYPE_MAP[v] || 'gray') },
         { key: 'content', label: '跟进内容', render: v => Helpers.escapeHtml(Helpers.truncate(v, 60)) },
-        { key: '_contactInfo', label: '联系人/电话', width: '140px', render: (v, item) => {
+        { key: '_contactInfo', label: '联系人/职务', width: '140px', render: (v, item) => {
           let contact = null;
           if (item.relatedType === 'customer' && item.relatedId) {
             contact = Store.query('contacts', c => c.customerId === item.relatedId && (c.isPrimary === true || c.isPrimary === 'true'));
@@ -56,7 +53,7 @@ const FollowUps = {
             }
           }
           if (contact) {
-            return `<span>${Helpers.escapeHtml(contact.name)} / ${Helpers.escapeHtml(contact.phone || '-')}</span>`;
+            return `<span>${Helpers.escapeHtml(contact.name)} / ${Helpers.escapeHtml(contact.title || '-')}</span>`;
           }
           return '-';
         }},
