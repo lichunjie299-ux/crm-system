@@ -87,6 +87,7 @@ const FollowUps = {
       searchKeys: ['content', 'creator'],
       searchPlaceholder: '搜索跟进内容...',
       sortKey: 'createdAt',
+      showPagination: true,
       filterFields: [
         { key: 'department', label: '销售部门', type: 'select', placeholder: '请选择', options: ['销售一部', '销售二部'], customFilter: (item, val) => {
           if (!val) return true;
