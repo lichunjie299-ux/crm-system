@@ -32,13 +32,39 @@ const FollowUps = {
 
     const table = Components.DataTable({
       columns: [
-        { key: 'type', label: '方式', width: '80px', render: v => Components.Badge(v, FollowUps.TYPE_MAP[v] || 'gray') },
+        { key: 'type', label: '联系类型', width: '90px', render: v => Components.Badge(v, FollowUps.TYPE_MAP[v] || 'gray') },
         { key: 'content', label: '跟进内容', render: v => Helpers.escapeHtml(Helpers.truncate(v, 60)) },
-        { key: 'relatedType', label: '关联类型', width: '80px', render: v => {
+        { key: '_contactInfo', label: '联系人/电话', width: '140px', render: (v, item) => {
+          let contact = null;
+          if (item.relatedType === 'customer' && item.relatedId) {
+            contact = Store.query('contacts', c => c.customerId === item.relatedId && (c.isPrimary === true || c.isPrimary === 'true'));
+            if (contact.length === 0) {
+              contact = Store.query('contacts', c => c.customerId === item.relatedId);
+            }
+            contact = contact.length > 0 ? contact[0] : null;
+          } else if (item.relatedType === 'opportunity' && item.relatedId) {
+            const opp = Store.getById('opportunities', item.relatedId);
+            if (opp && opp.contactId) {
+              contact = Store.getById('contacts', opp.contactId);
+            }
+          }
+          if (!contact) {
+            const customer = item.relatedType ? Store.getById('customers', item.relatedId) : null;
+            if (customer) {
+              const contacts = Store.query('contacts', c => c.customerId === item.relatedId);
+              contact = contacts.length > 0 ? contacts[0] : null;
+            }
+          }
+          if (contact) {
+            return `<span>${Helpers.escapeHtml(contact.name)} / ${Helpers.escapeHtml(contact.phone || '-')}</span>`;
+          }
+          return '-';
+        }},
+        { key: 'relatedType', label: '关联对象', width: '80px', render: v => {
           const map = { lead: '线索', customer: '客户', opportunity: '商机' };
           return map[v] || v;
         }},
-        { key: 'relatedId', label: '关联对象', render: (v, item) => {
+        { key: 'relatedId', label: '关联名称', render: (v, item) => {
           const collMap = { lead: 'leads', customer: 'customers', opportunity: 'opportunities' };
           const coll = collMap[item.relatedType];
           if (!coll) return '-';
@@ -63,10 +89,31 @@ const FollowUps = {
       data,
       searchKeys: ['content'],
       searchPlaceholder: '搜索跟进内容...',
-      actions: {
-        onDelete: (id) => this.handleDelete(id),
-      },
       sortKey: 'createdAt',
+      filterFields: [
+        { key: 'department', label: '销售部门', type: 'select', placeholder: '请选择', options: ['销售一部', '销售二部'], customFilter: (item, val) => {
+          if (!val) return true;
+          const customer = Store.getById('customers', item.relatedId);
+          if (!customer) return false;
+          return customer.department === val;
+        }},
+        { key: 'sales', label: '销售', type: 'text', placeholder: '请输入销售姓名', customFilter: (item, val) => {
+          if (!val) return true;
+          const customer = Store.getById('customers', item.relatedId);
+          if (!customer) return false;
+          return customer.assignee && customer.assignee.toLowerCase().includes(val.toLowerCase());
+        }},
+        { key: 'createdAt', label: '创建时间', type: 'dateRange', placeholder: '选择日期范围' },
+        { key: 'type', label: '联系类型', type: 'select', placeholder: '请选择', options: ['电话', '拜访', '邮件', '微信', '会议', '其他'] },
+        { key: 'relatedType', label: '关联对象', type: 'select', placeholder: '请选择', options: [
+          { value: 'lead', label: '线索' },
+          { value: 'customer', label: '客户' },
+          { value: 'opportunity', label: '商机' },
+        ], customFilter: (item, val) => {
+          if (!val) return true;
+          return item.relatedType === val;
+        }},
+      ],
     });
 
     el.querySelector('#table-container').appendChild(table);
