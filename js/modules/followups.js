@@ -111,7 +111,6 @@ const FollowUps = {
     });
 
     el.querySelector('#table-container').appendChild(table);
-    el.querySelector('#btn-add').addEventListener('click', () => this.showForm());
     el.addEventListener('click', (e) => {
       const link = e.target.closest('[data-href]');
       if (link) { e.stopPropagation(); Router.navigate(link.dataset.href); }
