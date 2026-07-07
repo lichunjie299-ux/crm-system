@@ -47,6 +47,10 @@ const FollowUps = {
           const hashMap = { lead: '#/leads/view/', customer: '#/customers/view/', opportunity: '#/opportunities/view/' };
           return `<span class="cell-link" data-href="${hashMap[item.relatedType]}${v}">${Helpers.escapeHtml(obj.name)}</span>`;
         }},
+        { key: 'creator', label: '创建人', width: '80px', render: (v, item) => {
+          return v || item.author || '-';
+        }},
+        { key: 'createdAt', label: '创建时间', width: '150px', sortable: true, render: v => Helpers.formatDateTime(v) },
         { key: 'nextFollowDate', label: '下次跟进', width: '110px', render: v => {
           if (!v) return '-';
           const d = new Date(v);
@@ -55,7 +59,6 @@ const FollowUps = {
           const isOverdue = d < today;
           return `<span style="color:${isOverdue ? 'var(--danger)' : 'inherit'};font-weight:${isOverdue ? '600' : 'normal'}">${Helpers.formatDate(v)}</span>`;
         }},
-        { key: 'createdAt', label: '时间', width: '120px', sortable: true, render: v => Helpers.formatRelativeTime(v) },
       ],
       data,
       searchKeys: ['content'],
