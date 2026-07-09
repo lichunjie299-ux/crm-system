@@ -20,6 +20,10 @@
   gap: 6px;
   flex-wrap: nowrap;
   overflow-x: auto;
+  cursor: help;
+}
+.opp-brief-stats [title] {
+  cursor: help;
 }
 
 .opp-brief-pill {
