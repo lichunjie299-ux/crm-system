@@ -604,8 +604,8 @@ const Opportunities = {
         '整体':      { bg: '#f0f5ff', border: '#adc6ff', color: '#1d39c4' },
         '需求待确认': { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
         '需求确认':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
-        '方案认可':   { bg: '#fffbe6', border: '#ffe58f', color: '#d48806' },
-        '确定合作':   { bg: '#fffbe6', border: '#ffe58f', color: '#d48806' },
+        '方案认可':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
+        '确定合作':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
         '合同签约':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
         '赢单':      { bg: '#f6ffed', border: '#b7eb8f', color: '#389e0d' },
         '输单':      { bg: '#fff2f0', border: '#ffccc7', color: '#cf1322' },
@@ -613,10 +613,10 @@ const Opportunities = {
 
       const buildCard = (label, count, amount) => {
         const c = cardColors[label] || { bg: '#fafafa', border: '#d9d9d9', color: '#666' };
-        return `<div style="flex:1;min-width:72px;background:${c.bg};border:1px solid ${c.border};border-radius:6px;padding:6px 8px;text-align:center;cursor:help" title="${buildTip(label)}">
-          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px;line-height:1.3">${label}</div>
-          <div style="font-size:15px;font-weight:700;color:${c.color};line-height:1.2;margin-bottom:1px">${count}</div>
-          <div style="font-size:11px;color:${c.color};opacity:0.85;line-height:1.2">${fmtAmt(amount)}</div>
+        return `<div style="flex:1;min-width:68px;background:${c.bg};border:1px solid ${c.border};border-radius:5px;padding:5px 6px;text-align:center;cursor:help" title="${buildTip(label)}">
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:1px;line-height:1.3">${label}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.2;margin-bottom:1px">${count}</div>
+          <div style="font-size:11px;color:var(--text-primary);line-height:1.2">${fmtAmt(amount)}</div>
         </div>`;
       };
 
