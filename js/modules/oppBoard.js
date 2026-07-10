@@ -4,7 +4,7 @@
 const OppBoard = {
 
   render() {
-    UI.setPageTitle('企服商机看板', [{ label: '数据看板', hash: '#/opp-board' }, { label: '企服商机看板' }]);
+    UI.setPageTitle('企服商机看板', [{ label: '工作台', hash: '#/dashboard' }, { label: '企服商机看板' }]);
 
     const opportunities = Store.getAll('opportunities');
     const totalCount = opportunities.length;
