@@ -580,7 +580,6 @@ const Opportunities = {
         if (amt >= 10000) return '¥' + (amt / 10000).toFixed(1) + 'W';
         return '¥' + Number(amt).toLocaleString('zh-CN', { maximumFractionDigits: 0 });
       };
-      const fmtCount = (n) => n + '个';
 
       // 口径说明
       const tooltipDefs = {
@@ -598,37 +597,36 @@ const Opportunities = {
 
       const buildTip = (label) => {
         const def = tooltipDefs[label] || '';
-        return globalTip + '\n\n' + def;
+        return Helpers.escapeHtml(globalTip + '\n\n' + def);
       };
 
-      // 第一行：阶段标签
-      let row1 = '<div style="display:flex;gap:0;font-size:11px;color:var(--text-secondary);margin-bottom:1px">';
-      row1 += `<span style="flex:1;min-width:54px" title="${Helpers.escapeHtml(buildTip('整体'))}">整体</span>`;
-      this.STAGES.forEach(stage => {
-        row1 += `<span style="flex:1;min-width:54px" title="${Helpers.escapeHtml(buildTip(stage))}">${stage}</span>`;
-      });
-      row1 += '</div>';
+      const cardColors = {
+        '整体':      { bg: '#f0f5ff', border: '#adc6ff', color: '#1d39c4' },
+        '需求待确认': { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
+        '需求确认':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
+        '方案认可':   { bg: '#fffbe6', border: '#ffe58f', color: '#d48806' },
+        '确定合作':   { bg: '#fffbe6', border: '#ffe58f', color: '#d48806' },
+        '合同签约':   { bg: '#e6f4ff', border: '#91caff', color: '#1677ff' },
+        '赢单':      { bg: '#f6ffed', border: '#b7eb8f', color: '#389e0d' },
+        '输单':      { bg: '#fff2f0', border: '#ffccc7', color: '#cf1322' },
+      };
 
-      // 第二行：商机量
-      let row2 = '<div style="display:flex;gap:0;font-size:14px;font-weight:700;margin-bottom:1px">';
-      row2 += `<span style="flex:1;min-width:54px;color:#1d1d1f" title="${Helpers.escapeHtml(buildTip('整体'))}">${fmtCount(stats.total.count)}</span>`;
+      const buildCard = (label, count, amount) => {
+        const c = cardColors[label] || { bg: '#fafafa', border: '#d9d9d9', color: '#666' };
+        return `<div style="flex:1;min-width:72px;background:${c.bg};border:1px solid ${c.border};border-radius:6px;padding:6px 8px;text-align:center;cursor:help" title="${buildTip(label)}">
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:2px;line-height:1.3">${label}</div>
+          <div style="font-size:15px;font-weight:700;color:${c.color};line-height:1.2;margin-bottom:1px">${count}</div>
+          <div style="font-size:11px;color:${c.color};opacity:0.85;line-height:1.2">${fmtAmt(amount)}</div>
+        </div>`;
+      };
+
+      let html = buildCard('整体', stats.total.count, stats.total.amount);
       this.STAGES.forEach(stage => {
         const s = stats[stage];
-        const color = { '需求待确认':'#1677ff', '需求确认':'#5b8def', '方案认可':'#faad14', '确定合作':'#faad14', '合同签约':'#5b8def', '赢单':'#52c41a', '输单':'#ff4d4f' }[stage] || '#6b7280';
-        row2 += `<span style="flex:1;min-width:54px;color:${color}" title="${Helpers.escapeHtml(buildTip(stage))}">${fmtCount(s.count)}</span>`;
+        html += buildCard(stage, s.count, s.amount);
       });
-      row2 += '</div>';
 
-      // 第三行：商机金额
-      let row3 = '<div style="display:flex;gap:0;font-size:12px;color:var(--text-primary)">';
-      row3 += `<span style="flex:1;min-width:54px" title="${Helpers.escapeHtml(buildTip('整体'))}">${fmtAmt(stats.total.amount)}</span>`;
-      this.STAGES.forEach(stage => {
-        const s = stats[stage];
-        row3 += `<span style="flex:1;min-width:54px" title="${Helpers.escapeHtml(buildTip(stage))}">${fmtAmt(s.amount)}</span>`;
-      });
-      row3 += '</div>';
-
-      return `<div style="background:var(--gray-50);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:8px 10px;cursor:help">${row1}${row2}${row3}</div>`;
+      return `<div style="display:flex;gap:6px;flex-wrap:wrap">${html}</div>`;
     };
 
     // 构建工具栏按钮（无）
