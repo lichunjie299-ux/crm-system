@@ -51,6 +51,9 @@ const App = {
     // 检查公海掉保规则
     this.checkPoolRules();
 
+    // 初始化 AI 助手
+    AIAssistant.init();
+
     console.log('CRM 系统已启动');
   },
 

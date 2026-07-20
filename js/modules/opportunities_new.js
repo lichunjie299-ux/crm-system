@@ -205,17 +205,17 @@ const Opportunities = {
   },
 
   FIELDS: [
-    { key: 'name', label: '商机名称', type: 'text', required: true, placeholder: '如：XX公司ERP项目' },
+    { key: 'name', label: '商机名称', type: 'text', required: true, placeholder: '意向产品+品牌名' },
     { key: 'customerId', label: '客户名称', type: 'select', required: true, options: [] },
-    { key: 'brandName', label: '品牌名', type: 'text', required: true, placeholder: '品牌名称' },
+    { key: 'brandName', label: '品牌名', type: 'text', required: true, placeholder: '经营品牌，无则填"无"' },
     { key: 'source', label: '商机来源', type: 'select', required: true, options: ['推广', '自拓'], default: '自拓' },
     { key: 'purchaseType', label: '采购类型', type: 'select', required: true, options: ['新开', '续约', '增购', '增值'], default: '新开' },
-    { key: 'customerNeed', label: '客户需求', type: 'textarea', required: true, fullWidth: true, placeholder: '详细描述客户的核心诉求、痛点或采购目标', rows: 3 },
+    { key: 'customerNeed', label: '客户需求', type: 'textarea', required: true, fullWidth: true, placeholder: '客户的核心诉求/痛点/目标', rows: 3 },
     { key: 'stage', label: '商机阶段', type: 'select', required: true, options: ['需求待确认', '需求确认', '方案认可', '确定合作', '合同签约', '赢单', '输单'], default: '需求待确认' },
     { key: 'expectedCloseDate', label: '预计成交时间', type: 'date', required: true },
     { key: 'intendedProducts', label: '意向产品及金额', type: 'productAmountList', required: true, options: ['微商城', '智慧零售', '智慧购百', '智慧商超', '智慧生鲜', '批发商城', '本地生活', '视频号营销助手', '智慧零售宠物行业', '智慧门店', '微盟星启', '智慧美业', '智慧服务', '企微助手', '企微小助手'] },
-    { key: 'keyAction', label: '本月关键动作', type: 'text', required: true, placeholder: '本月关键动作' },
-    { key: 'keyActionDate', label: '关键动作日期', type: 'date', required: true },
+    { key: 'keyAction', label: '本月关键动作', type: 'text', required: true, placeholder: '核心跟进任务内容概述' },
+    { key: 'keyActionDate', label: '关键动作日期', type: 'date', required: true, placeholder: '核心跟进任务执行日期' },
     { key: 'remark', label: '备注', type: 'textarea', fullWidth: true, placeholder: '备注信息...' },
     { key: 'attachment', label: '附件', type: 'file', fullWidth: true, accept: '.pdf,.jpg,.jpeg,.png,.docx', maxSize: 10 },
     { key: 'contactId', label: '关联客户联系人', type: 'select', required: true, options: [], placeholder: '请选择联系人' },
@@ -713,47 +713,41 @@ const Opportunities = {
       columns: [
         { key: 'name', label: '商机名称', sortable: true, render: (v, item) => `<span class="cell-link" data-id="${item.id}">${Helpers.escapeHtml(v || '')}</span>` },
         { key: 'customerId', label: '客户名称', render: v => { const c = Store.getById('customers', v); return c ? `<span class="cell-link" data-customer="${v}">${Helpers.escapeHtml(c.name)}</span>` : '-'; }},
-        { key: 'brandName', label: '品牌名', width: '90px', render: v => v ? `<span class="cell-brand">${Helpers.escapeHtml(v)}</span>` : '-' },
-        { key: 'intendedProducts', label: '意向产品', width: '120px', render: (v, item) => {
-          const products = Array.isArray(v) ? v : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
-          return products.length > 0 ? products.map(p => `<span style="display:inline-block;margin:1px 2px;padding:0 6px;background:var(--gray-100);border-radius:3px;font-size:12px">${Helpers.escapeHtml(p.product)}</span>`).join('') : '-';
-        }},
-        { key: 'purchaseType', label: '采购类型', width: '80px', render: v => v ? Components.Badge(v, v === '新开' ? 'primary' : v === '续约' ? 'info' : v === '增购' ? 'warning' : 'success') : '-' },
-        { key: 'dataValidity', label: '数据有效性', width: '100px', render: v => Components.Badge(v || '未生效', Opportunities.DATA_VALIDITY_TYPE[v || '未生效'] || 'gray') },
         { key: 'stage', label: '商机阶段', width: '110px', render: v => {
           const prob = Opportunities.STAGE_PROB[v];
           const badge = Components.Badge(v, Opportunities.STAGE_TYPE[v] || 'gray');
           return prob != null ? `${badge}<span style="font-size:var(--text-xs);color:var(--text-muted);margin-left:4px">${prob}%</span>` : badge;
         }},
+        { key: 'purchaseType', label: '采购类型', width: '80px', render: v => v ? Components.Badge(v, v === '新开' ? 'primary' : v === '续约' ? 'info' : v === '增购' ? 'warning' : 'success') : '-' },
+        { key: 'intendedProducts', label: '意向产品', width: '120px', render: (v, item) => {
+          const products = Array.isArray(v) ? v : (item.intendedProduct ? [{ product: item.intendedProduct, amount: item.amount }] : []);
+          return products.length > 0 ? products.map(p => `<span style="display:inline-block;margin:1px 2px;padding:0 6px;background:var(--gray-100);border-radius:3px;font-size:12px">${Helpers.escapeHtml(p.product)}</span>`).join('') : '-';
+        }},
+        { key: 'expectedCloseDate', label: '预计成交时间', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
         { key: 'amount', label: '预计总额', width: '120px', sortable: true, render: v => `<strong>${Helpers.formatMoney(v)}</strong>` },
-        { key: 'oppSource', label: '商机类型', width: '90px', render: v => v ? Components.Badge(v, v === '派单商机' ? 'primary' : 'info') : '-' },
-        { key: 'expectedCloseDate', label: '预计成交', width: '100px', sortable: true, render: v => Helpers.formatDate(v) },
-        { key: 'stageStayDays', label: '停留天数', width: '80px', sortable: true, render: (v, item) => {
-          let stageChangedAt;
-          if (item.stageChangedAt) { stageChangedAt = new Date(item.stageChangedAt); }
-          else { stageChangedAt = new Date(item.createdAt); }
-          const days = Math.floor((Date.now() - stageChangedAt.getTime()) / (1000 * 60 * 60 * 24));
-          return `${days}天`;
-        }},
-        { key: 'stageChangedAt', label: '阶段变更时间', width: '130px', sortable: true, render: (v, item) => {
-          if (item.stageChangedAt) return Helpers.formatDateTime(item.stageChangedAt);
-          return Helpers.formatDateTime(item.createdAt);
-        }},
-        { key: 'overdueStatus', label: '超期状态', width: '90px', render: (v, item) => {
-          if (item.stage === '赢单' || item.stage === '输单') return '-';
-          let stageChangedAt;
-          if (item.stageChangedAt) { stageChangedAt = new Date(item.stageChangedAt); }
-          else { stageChangedAt = new Date(item.createdAt); }
-          const days = Math.floor((Date.now() - stageChangedAt.getTime()) / (1000 * 60 * 60 * 24));
-          const expectedDuration = Opportunities.STAGE_DURATION[item.stage] || 7;
-          if (days > expectedDuration) {
-            return `<span class="pool-badge danger">超期${days - expectedDuration}天</span>`;
-          }
-          return '<span style="color:var(--success);font-size:var(--text-xs)">正常</span>';
-        }},
         { key: 'salesOwner', label: '销售归属人', width: '90px', render: (v, item) => {
           const customer = Store.getById('customers', item.customerId);
           return customer && customer.assignee ? Helpers.escapeHtml(customer.assignee) : '-';
+        }},
+        { key: 'keyAction', label: '本月关键动作', width: '130px', render: v => v ? Helpers.escapeHtml(v) : '-' },
+        { key: 'keyActionDate', label: '关键动作日期', width: '110px', sortable: true, render: v => v ? Helpers.formatDate(v) : '-' },
+        { key: 'customerNeed', label: '客户需求', width: '180px', render: v => v ? `<span title="${Helpers.escapeHtml(v)}" style="display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${Helpers.escapeHtml(v)}</span>` : '-' },
+        { key: 'createdAt', label: '创建时间', width: '110px', sortable: true, render: v => Helpers.formatDate(v) },
+        { key: 'stageStayDays', label: '阶段停留/超期', width: '130px', sortable: true, render: (v, item) => {
+          let stageChangedAt;
+          if (item.stageChangedAt) { stageChangedAt = new Date(item.stageChangedAt); }
+          else { stageChangedAt = new Date(item.createdAt); }
+          const days = Math.floor((Date.now() - stageChangedAt.getTime()) / (1000 * 60 * 60 * 24));
+          let html = `${days}天`;
+          if (item.stage !== '赢单' && item.stage !== '输单') {
+            const expectedDuration = Opportunities.STAGE_DURATION[item.stage] || 7;
+            if (days > expectedDuration) {
+              html += ` <span class="pool-badge danger">超期${days - expectedDuration}天</span>`;
+            } else {
+              html += ' <span style="color:var(--success);font-size:var(--text-xs)">正常</span>';
+            }
+          }
+          return html;
         }},
       ],
       data: data,

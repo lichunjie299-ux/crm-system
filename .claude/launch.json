@@ -6,7 +6,8 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "3459"],
       "cwd": "${workspaceFolder}",
-      "port": 3459
+      "port": 3459,
+      "autoPort": true
     }
   ]
 }

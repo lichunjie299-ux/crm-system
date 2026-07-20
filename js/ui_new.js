@@ -309,14 +309,14 @@ const UI = {
           input = `<input type="${f.type || 'text'}" class="form-input" name="${f.key}" value="${Helpers.escapeHtml(String(value))}" placeholder="${f.placeholder || ''}" ${f.disabled ? 'disabled' : ''}>`;
       }
 
-      return `<div class="form-row${fullWidth}">
+      return `<div class="form-group${fullWidth}">
         <label class="form-label">${Helpers.escapeHtml(f.label)}${required}</label>
-        <div class="form-field">${input}</div>
+        ${input}
       </div>`;
     }).join('');
 
     const el = document.createElement('div');
-    el.className = 'form-rows';
+    el.className = 'form-grid';
     el.innerHTML = html;
 
     // 标签输入处理

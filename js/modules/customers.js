@@ -6,19 +6,50 @@ const Customers = {
   _documentClickHandler: null,
   _currentSea: 'os',
 
-  FIELDS: [
+  FIELDS_BASIC: [
     { key: 'businessLine', label: '业务线', type: 'select', required: true, options: ['上海营销中心', '北京营销中心', '深圳营销中心', '广州营销中心', '杭州营销中心'] },
-    { key: 'productLine', label: '产品线', type: 'select', required: true, options: ['新零售', '零售SaaS', '智慧商超', '到店', '视频号', '定制开发', '企微小助手', '智慧服务'] },
     { key: 'customerSource', label: '线索来源', type: 'select', required: true, options: ['自拓线索'], default: '自拓线索' },
+    { key: 'sourceNote', label: '来源备注', type: 'text', fullWidth: true, placeholder: '线索来源补充说明' },
+    { key: 'productLine', label: '产品线', type: 'select', required: true, options: ['新零售', '零售SaaS', '智慧商超', '到店', '视频号', '定制开发', '企微小助手', '智慧服务'] },
     { key: 'type', label: '客户类型', type: 'select', required: true, options: ['企业客户', '个人客户'], default: '企业客户' },
     { key: 'name', label: '客户名称', type: 'text', required: true, placeholder: '请输入公司全称' },
     { key: 'isBrandCustomer', label: '是否品牌客户', type: 'select', required: true, options: ['是', '否'], default: '否' },
     { key: 'brandName', label: '品牌名', type: 'text', placeholder: '请输入品牌名称' },
     { key: 'storeCount', label: '线下门店数', type: 'select', required: true, options: ['无门店', '1-10家', '11-30家', '31-50家', '51-100家', '101-500家', '500家以上'] },
-    { key: 'primaryContactId', label: '联系人姓名', type: 'select', required: true, options: [] },
     { key: 'industry', label: '行业', type: 'select', required: true, options: ['互联网/IT', '金融', '制造业', '教育', '医疗', '房地产', '零售', '其他'] },
     { key: 'region', label: '地区', type: 'select', required: true, options: ['上海', '北京', '深圳', '广州', '成都', '杭州', '南京', '武汉', '重庆', '西安', '天津', '长沙', '其他'] },
+    { key: 'website', label: '网址', type: 'text', placeholder: 'https://' },
     { key: 'address', label: '地址', type: 'text', fullWidth: true },
+  ],
+
+  FIELDS_CONTACT: [
+    { key: 'contactName', label: '联系人姓名', type: 'text', required: true, placeholder: '请输入联系人姓名' },
+    { key: 'contactPhone', label: '联系方式', type: 'text', required: true, placeholder: '请输入手机号或电话' },
+    { key: 'contactType', label: '联系人类型', type: 'select', required: true, options: ['关键决策人', '技术对接人', '商务对接人', '业务对接人', '老板', '合伙人', '其他'] },
+    { key: 'contactDept', label: '联系人部门', type: 'text', required: true, placeholder: '请输入所属部门' },
+    { key: 'contactTitle', label: '联系人职务', type: 'text', required: true, placeholder: '请输入职务' },
+  ],
+
+  // 向后兼容: FIELDS 合并两部分
+  FIELDS: [
+    { key: 'businessLine', label: '业务线', type: 'select', required: true, options: ['上海营销中心', '北京营销中心', '深圳营销中心', '广州营销中心', '杭州营销中心'] },
+    { key: 'customerSource', label: '线索来源', type: 'select', required: true, options: ['自拓线索'], default: '自拓线索' },
+    { key: 'sourceNote', label: '来源备注', type: 'text', fullWidth: true, placeholder: '线索来源补充说明' },
+    { key: 'productLine', label: '产品线', type: 'select', required: true, options: ['新零售', '零售SaaS', '智慧商超', '到店', '视频号', '定制开发', '企微小助手', '智慧服务'] },
+    { key: 'type', label: '客户类型', type: 'select', required: true, options: ['企业客户', '个人客户'], default: '企业客户' },
+    { key: 'name', label: '客户名称', type: 'text', required: true, placeholder: '请输入公司全称' },
+    { key: 'isBrandCustomer', label: '是否品牌客户', type: 'select', required: true, options: ['是', '否'], default: '否' },
+    { key: 'brandName', label: '品牌名', type: 'text', placeholder: '请输入品牌名称' },
+    { key: 'storeCount', label: '线下门店数', type: 'select', required: true, options: ['无门店', '1-10家', '11-30家', '31-50家', '51-100家', '101-500家', '500家以上'] },
+    { key: 'industry', label: '行业', type: 'select', required: true, options: ['互联网/IT', '金融', '制造业', '教育', '医疗', '房地产', '零售', '其他'] },
+    { key: 'region', label: '地区', type: 'select', required: true, options: ['上海', '北京', '深圳', '广州', '成都', '杭州', '南京', '武汉', '重庆', '西安', '天津', '长沙', '其他'] },
+    { key: 'website', label: '网址', type: 'text', placeholder: 'https://' },
+    { key: 'address', label: '地址', type: 'text', fullWidth: true },
+    { key: 'contactName', label: '联系人姓名', type: 'text', required: true, placeholder: '请输入联系人姓名' },
+    { key: 'contactPhone', label: '联系方式', type: 'text', required: true, placeholder: '请输入手机号或电话' },
+    { key: 'contactType', label: '联系人类型', type: 'select', required: true, options: ['关键决策人', '技术对接人', '商务对接人', '业务对接人', '老板', '合伙人', '其他'] },
+    { key: 'contactDept', label: '联系人部门', type: 'text', required: true, placeholder: '请输入所属部门' },
+    { key: 'contactTitle', label: '联系人职务', type: 'text', required: true, placeholder: '请输入职务' },
   ],
 
   STATUS_MAP: { '活跃': 'success', '沉默': 'warning', '流失': 'danger', '公海': 'gray' },
@@ -317,39 +348,84 @@ const Customers = {
 
     const tabsApi = Components.Tabs([
       {
-        label: '基本信息',
+        label: '概况信息',
         render: () => {
           const container = document.createElement('div');
-          // 模块一：客户基本信息
+          const sectionStyle = 'font-size:var(--text-sm);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3);padding:0 var(--space-1);margin-top:var(--space-5)';
+          
+          // 模块一：基本信息
           const infoCard = document.createElement('div');
-          infoCard.innerHTML = `<h3 class="section-title" style="font-size:var(--text-sm);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3);padding:0 var(--space-1)">基本信息</h3>
-            <div class="card">${Components.DetailCard([
+          infoCard.innerHTML = '<h3 class="section-title" style="' + sectionStyle + '">基本信息</h3>' +
+            '<div class="card">' + Components.DetailCard([
               { key: 'name', label: '客户名称' },
               { key: 'type', label: '客户类型' },
-              { key: 'businessLine', label: '业务线' },
-              { key: 'productLine', label: '产品线' },
               { key: 'industry', label: '行业' },
-              { key: 'region', label: '地区' },
-              { key: 'storeCount', label: '线下门店数' },
               { key: 'isBrandCustomer', label: '是否品牌客户', render: v => v === '是' ? '<span style="color:var(--warning);font-weight:600">✓ 是</span>' : '否' },
               { key: 'brandName', label: '品牌名', render: v => v ? Helpers.escapeHtml(v) : '-' },
-              { key: 'customerSource', label: '线索来源' },
-              { key: 'status', label: '状态', render: v => Components.Badge(v, Customers.STATUS_MAP[v] || 'gray') },
+              { key: 'region', label: '地区' },
               { key: 'address', label: '地址' },
-              { key: 'createdAt', label: '创建时间', render: v => Helpers.formatDateTime(v) },
-            ], item)}</div>`;
+              { key: 'website', label: '网址', render: v => v ? '<a href="' + Helpers.escapeHtml(v) + '" target="_blank">' + Helpers.escapeHtml(v) + '</a>' : '-' },
+            ], item) + '</div>';
           container.appendChild(infoCard);
+
           // 模块二：联系人信息
           const contactCard = document.createElement('div');
           contactCard.style.marginTop = 'var(--space-4)';
           const contacts = Store.query('contacts', c => c.customerId === id);
-          const contactTitle = document.createElement('h3');
-          contactTitle.className = 'section-title';
-          contactTitle.style.cssText = 'font-size:var(--text-sm);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3);padding:0 var(--space-1)';
-          contactTitle.textContent = '联系人信息';
-          contactCard.appendChild(contactTitle);
-          contactCard.appendChild(Contacts.renderSubList(contacts, id));
+          contactCard.innerHTML = '<h3 class="section-title" style="' + sectionStyle + '">联系人信息</h3>';
+          if (contacts.length === 0) {
+            contactCard.innerHTML += '<div class="card" style="padding:24px;text-align:center;color:var(--text-muted)">暂无联系人</div>';
+          } else {
+            contactCard.innerHTML += '<div class="card"><div class="detail-card">' + contacts.map(c => 
+              '<div class="detail-field"><div class="field-label">联系人类型</div><div class="field-value">' + (c.contactType || c.title || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">联系人姓名</div><div class="field-value">' + Helpers.escapeHtml(c.name || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">联系方式</div><div class="field-value" style="color:var(--text-muted)">' + (c.phone || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">部门</div><div class="field-value">' + (c.contactDept || c.dept || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">职务</div><div class="field-value">' + Helpers.escapeHtml(c.title || c.contactTitle || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">性别</div><div class="field-value">' + (c.gender || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">QQ</div><div class="field-value">' + (c.qq || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">微信</div><div class="field-value">' + (c.wechat || '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">邮箱</div><div class="field-value">' + (c.email ? '<a href="mailto:' + c.email + '">' + Helpers.escapeHtml(c.email) + '</a>' : '-') + '</div></div>' +
+              '<div class="detail-field"><div class="field-label">固话</div><div class="field-value">' + (c.landline || '-') + '</div></div>'
+            ).join('') + '</div></div>';
+          }
           container.appendChild(contactCard);
+
+          // 模块三：工商资质
+          const bizCard = document.createElement('div');
+          bizCard.style.marginTop = 'var(--space-4)';
+          const bizFields = [
+            { key: 'creditCode', label: '信用代码' },
+            { key: 'legalPerson', label: '法人' },
+            { key: 'registeredCapital', label: '注册资本' },
+            { key: 'paidCapital', label: '实缴资本' },
+            { key: 'businessStatus', label: '经营状态' },
+            { key: 'establishDate', label: '注册时间' },
+            { key: 'businessTerm', label: '营业期限' },
+            { key: 'approvalDate', label: '核准日期' },
+            { key: 'registrationAuthority', label: '登记机关' },
+            { key: 'insuredCount', label: '参保人数' },
+            { key: 'staffScale', label: '人员规模' },
+            { key: 'companyWebsite', label: '公司网址' },
+            { key: 'businessScope', label: '经营范围', fullWidth: true },
+          ];
+          bizCard.innerHTML = '<h3 class="section-title" style="' + sectionStyle + '">工商资质</h3>' +
+            '<div class="card">' + Components.DetailCard(bizFields, item) + '</div>';
+          container.appendChild(bizCard);
+
+          // 模块四：操作日志
+          const logCard = document.createElement('div');
+          logCard.style.marginTop = 'var(--space-4)';
+          const logs = Store.query('operationLogs', l => l.customerId === id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          logCard.innerHTML = '<h3 class="section-title" style="' + sectionStyle + '">操作日志</h3>';
+          if (logs.length === 0) {
+            logCard.innerHTML += '<div class="card" style="padding:24px;text-align:center;color:var(--text-muted)">暂无操作日志</div>';
+          } else {
+            logCard.innerHTML += '<div class="card"><div class="table-wrapper"><table class="data-table"><thead><tr><th>时间</th><th>操作人</th><th>操作类型</th><th>操作内容</th></tr></thead><tbody>' + logs.map(l => 
+              '<tr><td>' + Helpers.formatDateTime(l.createdAt) + '</td><td>' + Helpers.escapeHtml(l.operator || '-') + '</td><td>' + Helpers.escapeHtml(l.actionType || '-') + '</td><td>' + Helpers.escapeHtml(l.content || '-') + '</td></tr>'
+            ).join('') + '</tbody></table></div></div>';
+          }
+          container.appendChild(logCard);
           return container;
         }
       },
@@ -841,12 +917,17 @@ const Customers = {
     const data = isEdit ? Store.getById(this.COLLECTION, id) : {};
 
     // 动态填充联系人选项
-    const fields = this.FIELDS.map(f => ({ ...f }));
-    const contactField = fields.find(f => f.key === 'primaryContactId');
-    if (contactField) {
-      const contacts = Store.getAll('contacts').map(c => ({ value: c.id, label: c.name }));
-      contactField.options = [{ value: '', label: '请选择联系人' }, ...contacts];
-    }
+    // 构建分节表单字段：基本信息 + 联系人信息
+    const basicFields = this.FIELDS_BASIC.map(f => ({ ...f }));
+    const contactFields = this.FIELDS_CONTACT.map(f => ({ ...f }));
+    // 在基本信息顶部插入分组标题，两部分之间也插入分组标题
+    const fields = [
+      { key: '_section_basic', label: '客户基本信息', type: 'section' },
+      ...basicFields,
+      { key: '_section_contact', label: '联系人信息', type: 'section' },
+      ...contactFields,
+    ];
+    // 联系人字段已改为文本输入，不再需要动态选项
 
     const { overlay, close } = UI.formModal({
       title: isEdit ? '编辑客户' : '新建客户',
